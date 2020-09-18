@@ -81,8 +81,8 @@ disqusShortname = ""
   [params.banner]
     # To change the background image on the homepage banner, replace 'banner.jpg' in
     # the 'static/img' folder.
-    title = "Hi, my name is Forty"
-    subtitle = "A RESPONSIVE SITE TEMPLATE DESIGNED BY HTML5 UP\nAND RELEASED UNDER THE CREATIVE COMMONS."
+    title = "Hi, my name is Stelios"
+    subtitle = "Selected data analysis projects"
     buttonText = "Get Started"
 
 
@@ -95,13 +95,13 @@ disqusShortname = ""
       title = "NYT Masks"
       subtitle = "How does mask use acceptance vary in the US?"
       image = "pic01.jpg"
-      url = "blogs/blog5"
+      url = "blogs/blog5.html"
 
     [[params.tiles.showcase]]
-      title = "Tempus"
-      subtitle = "Feugiat Amet Tempus"
+      title = "NYSE stock analysis"
+      subtitle = "Analysing historical data of selected stocks from 2011 to 2020"
       image = "pic02.jpg"
-      url = "blogs/tempus"
+      url = "blogs/blog6"
 
     [[params.tiles.showcase]]
       title = "Magna"
@@ -115,18 +115,18 @@ disqusShortname = ""
       image = "pic04.jpg"
       url = "blogs/ipsum"
 
-    [[params.tiles.showcase]]
-      title = "Consequat"
-      subtitle = "Ipsum Dolor Sit Amet"
-      image = "pic05.jpg"
-      url = "blogs/ipsum"
+#    [[params.tiles.showcase]]
+#      title = "Consequat"
+#      subtitle = "Ipsum Dolor Sit Amet"
+#      image = "pic05.jpg"
+#      url = "blogs/ipsum"
 
-    [[params.tiles.showcase]]
-      title = "Etiam"
-      subtitle = "Feugiat Amet Tempus"
-      image = "pic06.jpg"
-      url = "blogs/ipsum"
-    # You can make more showcases by copy and pasting the code above
+#    [[params.tiles.showcase]]
+#      title = "Etiam"
+#      subtitle = "Feugiat Amet Tempus"
+#      image = "pic06.jpg"
+#      url = "blogs/ipsum"
+#    # You can make more showcases by copy and pasting the code above
 
   [params.blog]
     # All blogs defined in their own files. You can find example blogs
@@ -190,29 +190,29 @@ disqusShortname = ""
     copyright = "Company Name"
 
     # Uses font awesome icons
-    [[params.footer.social]]
-      icon = "fa-twitter"
-      url= "https://www.twitter.com"
-      label = "Twitter"
+#    [[params.footer.social]]
+#      icon = "fa-twitter"
+#      url= "https://www.twitter.com"
+#      label = "Twitter"
 
     [[params.footer.social]]
       icon = "fa-facebook"
-      url= "https://www.facebook.com"
+      url= "https://www.facebook.com/stelios.tzavellos"
       label = "Facebook"
 
-    [[params.footer.social]]
-      icon = "fa-instagram"
-      url= "https://www.instagram.com"
-      label = "Instagram"
+#    [[params.footer.social]]
+#      icon = "fa-instagram"
+#      url= "https://www.instagram.com"
+#      label = "Instagram"
     
     [[params.footer.social]]
       icon = "fa-github"
-      url= "https://www.github.com"
+      url= "https://github.com/steliostzavellos"
       label = "GitHub"
 
     [[params.footer.social]]
       icon = "fa-linkedin"
-      url= "https://www.linkedin.com"
+      url= "https://www.linkedin.com/in/stelios-tzavellos-0b0135b3/"
       label = "LinkedIn"
 
     [[params.footer.quicklinks]]
