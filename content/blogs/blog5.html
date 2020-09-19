@@ -5,7 +5,7 @@ categories:
 date: "2020-09-07"
 description: Is mask acceptance high in the US? NYT Survey analysis
 draft: false
-image: pic07.jpg
+image: pic11.jpg
 keywords: ""
 slug: blog5
 title: Mask Acceptance
@@ -54,44 +54,44 @@ glimpse(nyt_mask_survey)</code></pre>
 # The id field is the FIPS code for the county
 county_map %&gt;% 
   sample_n(5)</code></pre>
-<pre><code>##      long      lat  order  hole piece            group    id
-## 1 1005533    81482 187117 FALSE     1 0500000US55029.1 55029
-## 2 1714171  -871379 124798 FALSE     1 0500000US37119.1 37119
-## 3 1818569  -559596 170113 FALSE     1 0500000US51015.1 51015
-## 4   30899 -1497905 157705 FALSE     1 0500000US48083.1 48083
-## 5 -716714   207626 106490 FALSE     1 0500000US30037.1 30037</code></pre>
+<pre><code>##       long      lat  order  hole piece            group    id
+## 1 -1671341  -595104  29128 FALSE     1 0500000US06109.1 06109
+## 2  2099084  -658006 125329 FALSE     1 0500000US37139.1 37139
+## 3   891048   -91005 186777 FALSE     1 0500000US55027.1 55027
+## 4   562505  -503640 101740 FALSE     1 0500000US29079.1 29079
+## 5   874384 -1545499  72554 FALSE     1 0500000US22063.1 22063</code></pre>
 <pre class="r"><code>county_data %&gt;%
     sample_n(5)</code></pre>
-<pre><code>##      id              name state census_region      pop_dens   pop_dens4
-## 1 19077    Guthrie County    IA       Midwest [   10,   50) [ 17,   45)
-## 2 19135     Monroe County    IA       Midwest [   10,   50) [ 17,   45)
-## 3 33015 Rockingham County    NH     Northeast [  100,  500) [118,71672]
-## 4 37185     Warren County    NC         South [   10,   50) [ 45,  118)
-## 5 55021   Columbia County    WI       Midwest [   50,  100) [ 45,  118)
+<pre><code>##      id            name state census_region      pop_dens   pop_dens4
+## 1 46065   Hughes County    SD       Midwest [   10,   50) [ 17,   45)
+## 2 24045 Wicomico County    MD         South [  100,  500) [118,71672]
+## 3 42131  Wyoming County    PA     Northeast [   50,  100) [ 45,  118)
+## 4 47123   Monroe County    TN         South [   50,  100) [ 45,  118)
+## 5 37121 Mitchell County    NC         South [   50,  100) [ 45,  118)
 ##     pop_dens6   pct_black    pop female white black travel_time land_area
-## 1 [  9,   25) [ 0.0, 2.0)  10722   50.0  98.1   0.3        27.3       591
-## 2 [  9,   25) [ 0.0, 2.0)   8001   50.0  97.5   0.5        25.1       434
-## 3 [215,71672] [ 0.0, 2.0) 300621   50.6  95.7   0.9        29.1       695
-## 4 [ 45,   82) [50.0,85.3]  20231   49.1  40.8  51.7        29.4       428
-## 5 [ 45,   82) [ 0.0, 2.0)  56615   49.4  96.2   1.4        26.1       766
+## 1 [  9,   25) [ 0.0, 2.0)  17642   51.3  85.1   1.3        10.4       742
+## 2 [215,71672] [15.0,25.0) 101539   52.1  69.3  24.9        21.9       374
+## 3 [ 45,   82) [ 0.0, 2.0)  28131   49.9  97.4   0.9        26.2       397
+## 4 [ 45,   82) [ 2.0, 5.0)  45233   50.5  95.0   2.3        27.2       636
+## 5 [ 45,   82) [ 0.0, 2.0)  15311   50.9  96.9   0.6        23.0       221
 ##   hh_income su_gun4 su_gun6  fips votes_dem_2016 votes_gop_2016
-## 1     50609 [ 8,11) [ 8,10) 19077           1720           3603
-## 2     45997 [ 8,11) [ 8,10) 19135           1053           2635
-## 3     77348 [ 0, 5) [ 4, 7) 33015          79994          90447
-## 4     34285 [ 5, 8) [ 4, 7) 37185           6668           3302
-## 5     57922 [ 5, 8) [ 7, 8) 55021          13525          14160
+## 1     59338 [ 8,11) [ 8,10) 46065           2449           5174
+## 2     51092 [ 5, 8) [ 4, 7) 24045          16327          20832
+## 3     48482 [ 8,11) [ 8,10) 42131           3573           8375
+## 4     37595 [11,54] [10,12) 47123           3184          13361
+## 5     37680 [11,54] [12,54] 37121           1585           6225
 ##   total_votes_2016 per_dem_2016 per_gop_2016 diff_2016 per_dem_2012
-## 1             5654        0.304        0.637      1883        0.439
-## 2             3844        0.274        0.685      1582        0.455
-## 3           179005        0.447        0.505     10453        0.472
-## 4            10123        0.659        0.326      3366        0.679
-## 5            29287        0.462        0.483       635        0.563
-##   per_gop_2012 diff_2012  winner partywinner16 winner12 partywinner12 flipped
-## 1        0.542       599   Trump    Republican   Romney    Republican      No
-## 2        0.532       293   Trump    Republican   Romney    Republican      No
-## 3        0.517      7713   Trump    Republican   Romney    Republican      No
-## 4        0.318      3524 Clinton      Democrat    Obama      Democrat      No
-## 5        0.427      4144   Trump    Republican    Obama      Democrat     Yes</code></pre>
+## 1             8173        0.300        0.633      2725        0.342
+## 2            38722        0.422        0.538      4505        0.457
+## 3            12418        0.288        0.674      4802        0.429
+## 4            17050        0.187        0.784     10177        0.268
+## 5             7948        0.199        0.783      4640        0.236
+##   per_gop_2012 diff_2012 winner partywinner16 winner12 partywinner12 flipped
+## 1        0.640      2433  Trump    Republican   Romney    Republican      No
+## 2        0.526      2655  Trump    Republican   Romney    Republican      No
+## 3        0.552      1377  Trump    Republican   Romney    Republican      No
+## 4        0.718      7349  Trump    Republican   Romney    Republican      No
+## 5        0.753      3968  Trump    Republican   Romney    Republican      No</code></pre>
 <pre class="r"><code>glimpse(county_data)</code></pre>
 <pre><code>## Rows: 3,195
 ## Columns: 32
