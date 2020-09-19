@@ -48,16 +48,16 @@ disqusShortname = ""
       url = "#"
 
     [[params.navigation.links]]
-      name = "Blogs"
-      url = "blogs"
+      name = "About me"
+      url = "post/post_1"
 
 #    [[params.navigation.links]]
 #      name = "Generic Blog"
 #      url = "blogs/ipsum"
 
-    [[params.navigation.links]]
-      name = "Elements"
-      url = "elements.html"
+#    [[params.navigation.links]]
+#      name = "Elements"
+#      url = "elements.html"
 
     # Add custom links here by uncommenting code below. To remove links just delete
     # the [[params.navigation.links]] map associated with that link. Copy and paste
@@ -81,15 +81,21 @@ disqusShortname = ""
   [params.banner]
     # To change the background image on the homepage banner, replace 'banner.jpg' in
     # the 'static/img' folder.
-    title = "Hi, I am Stelios. Let's think positively!"
-    subtitle = "Selected data analysis projects"
-    buttonText = "Get Started"
+    title = "Stelios Tzavellos"
+    subtitle = "Welcome to my personal site! I am an Analytics and Management student at LBS and in this site you can find more about my experience with R."
+    buttonText = "About me"
 
 
   # Tiles Section
   [params.tiles]
     enable = true
     # Display your showcases here.
+    
+        [[params.tiles.showcase]]
+      title = "About me"
+      subtitle = "Stelios Tzavellos, MAM Student at LBS"
+      image = "pic02.jpg"
+      url = "post/post1"
     
     [[params.tiles.showcase]]
       title = "NYT Masks"
