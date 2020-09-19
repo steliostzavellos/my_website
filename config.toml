@@ -91,11 +91,11 @@ disqusShortname = ""
     enable = true
     # Display your showcases here.
     
-        [[params.tiles.showcase]]
+    [[params.tiles.showcase]]
       title = "About me"
       subtitle = "Stelios Tzavellos, MAM Student at LBS"
       image = "pic02.jpg"
-      url = "post/post1"
+      url = "post/post_1"
     
     [[params.tiles.showcase]]
       title = "NYT Masks"
