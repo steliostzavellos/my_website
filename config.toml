@@ -94,26 +94,26 @@ disqusShortname = ""
     [[params.tiles.showcase]]
       title = "NYT Masks"
       subtitle = "How does mask use acceptance vary in the US?"
-      image = "pic01.jpg"
+      image = "pic07.jpg"
       url = "blogs/blog5.html"
 
     [[params.tiles.showcase]]
       title = "NYSE stock analysis"
       subtitle = "Analysing historical data of selected stocks from 2011 to 2020"
-      image = "pic02.jpg"
+      image = "nyse.jpg"
       url = "blogs/blog6"
 
     [[params.tiles.showcase]]
-      title = "Magna"
-      subtitle = "Lorem Etiam Nullam"
-      image = "pic03.jpg"
-      url = "blogs/magna"
+      title = "Airbnb Analytics"
+      subtitle = "Predicting the price of Airbnbs in Singapores"
+      image = "airbnb.jpg"
+      url = "blogs/blog7"
 
     [[params.tiles.showcase]]
-      title = "Ipsum"
-      subtitle = "Nisl Sed Aliquam"
-      image = "pic04.jpg"
-      url = "blogs/ipsum"
+      title = "Climate change"
+      subtitle = "Analysing temperature anomalies"
+      image = "climate.jpg"
+      url = "blogs/blog8"
 
 #    [[params.tiles.showcase]]
 #      title = "Consequat"
@@ -136,16 +136,16 @@ disqusShortname = ""
     # To add more blogs just copy and paste the code.
 
   # Section Type Two
-  [params.two]
-    enable = true
-    title = "Massa libero"
-    subtitle = """Nullam et orci eu lorem consequat tincidunt vivamus et sagittis libero. 
-    Mauris aliquet magna magna sed nunc rhoncus pharetra. 
-    Pellentesque condimentum sem. In efficitur ligula tate urna. Maecenas laoreet massa vel lacinia pellentesque lorem ipsum dolor. 
-    Nullam et orci eu lorem consequat tincidunt. Vivamus et sagittis libero.
-    Mauris aliquet magna magna sed nunc rhoncus amet pharetra et feugiat tempus."""
-    buttonText = "Get Started"
-    url = "blogs"
+#  [params.two]
+#    enable = true
+#    title = "Massa libero"
+#    subtitle = """Nullam et orci eu lorem consequat tincidunt vivamus et sagittis libero. 
+#    Mauris aliquet magna magna sed nunc rhoncus pharetra. 
+#    Pellentesque condimentum sem. In efficitur ligula tate urna. Maecenas laoreet massa vel lacinia pellentesque lorem ipsum dolor. 
+#    Nullam et orci eu lorem consequat tincidunt. Vivamus et sagittis libero.
+#    Mauris aliquet magna magna sed nunc rhoncus amet pharetra et feugiat tempus."""
+#    buttonText = "Get Started"
+#    url = "blogs"
 
 
   # Contact section
