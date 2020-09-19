@@ -1,0 +1,193 @@
+---
+categories:
+- ""
+- ""
+date: "2020-09-18"
+description: NYSE stock data analysis
+draft: false
+image: pic13.jpg
+keywords: ""
+slug: blog6
+title: Stock analysis
+---
+
+ 
+```{r, setup}
+knitr::opts_chunk$set(
+  message = FALSE,
+  warning = FALSE,
+  tidy=FALSE,     # display code as typed
+  size="small")   # slightly smaller font for code
+options(digits = 3)
+
+# default figure size
+knitr::opts_chunk$set(
+  fig.width=6.75,
+  fig.height=6.75,
+  fig.align = "center"
+)
+```
+
+ 
+```{r load-libraries, warning=FALSE, message=FALSE, echo=FALSE}
+library(tidyverse)# Load ggplot2, dplyr, and all the other tidyverse packages
+library(mosaic)
+library(ggthemes)
+library(lubridate)
+library(fivethirtyeight)
+library(here)
+library(skimr)
+library(janitor)
+library(vroom)
+library(tidyquant)
+library(ggrepel)
+library(kableExtra)
+```
+
+# Introduction
+
+The aim of the specific document is to analyse New York Stock Exchange data using R, and more specifically using the tidyverse and ggplot2 packages. We make use of the `tidyquant` package to download historical data of stock prices, calculate returns, and examine the distribution of returns. We have specifically chosen to analyse data from January 2011 up until August 2020. By analysing the dataset, we come up with a measure of the riskiness of 7 company stocks and the S&P500 index. 
+
+# Returns of Financial Stocks
+
+To begin with, we create a dataset containing 508 stocks listed on the NYSE. The dataset has a number of different variables as follows:
+
+- `symbol` : the Ticker symbol of each stock
+- `name`: the name of the listed company
+- `ipo_year`: the year the company completed its Initial Public Offering and got listed
+- `sector`: the sector the company operates in
+- `industry`: the industry the company operates in
+- `summary_quote`: the online link to the company's quote price
+
+ 
+```{r load_nyse_data, message=FALSE, warning=FALSE}
+
+# Download stock data using the tidyquant package
+nyse <- vroom(here::here("data","nyse.csv"))
+
+```
+
+Based on this dataset, we can create a table and a bar plot that show the number of companies per sector.
+
+```{r companies_per_sector}
+
+# Table
+nyse_by_sector <- nyse %>%
+  group_by(sector) %>%
+  summarise(n = n())
+nyse_by_sector
+
+ 
+# Plot
+ggplot(nyse_by_sector, aes(x = reorder(sector, -n), y = n)) +
+  geom_col(fill="#001e62",alpha=0.7)+
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(title = "Number of NYSE companies per sector", x = "Sector", y = "Number of listed companies")+
+  NULL
+
+```
+
+Next, let's choose some nyse stocks and their ticker symbols and download some data. We have selected to examine the stocks from Alibaba (BABA), Visa (V), Procter & Gamble (PG), Coca-cola (KO), Boeing (BA), Nike (NKE), AstraZeneca (AZN) and the SP500 ETF (Exchange Traded Fund) for a period approximately 10 years. The dataset has a number of different variables as follows:
+
+- `symbol` : the Ticker symbol of each stock
+- `date`: stock price date
+- `open`: the price of the stock at opening of the stock exchange
+- `high`: the max price of each stock on each day
+- `low`: the min price of each stock on each day
+- `close`: the price of the stock at closing of the stock exchange
+- `volume`: the number of stocks traded that day
+- `adjusted`: the adjusted closing price of the stock, which adjusts for any stock splits or dividends paid
+
+```{r get_price_data, message=FALSE, warning=FALSE, cache=TRUE}
+
+myStocks <- c("BABA","V","PG","KO","BA","NKE","AZN","SPY" ) %>%
+  tq_get(get  = "stock.prices",
+         from = "2011-01-01",
+         to   = "2020-08-31") %>%
+  group_by(symbol)
+
+glimpse(myStocks)
+```
+
+To proceed we will calculate the average % returns of each stock. Given the adjusted closing prices, our first step is to calculate daily, monthly and annual returns.
+
+ 
+```{r calculate_returns, message=FALSE, warning=FALSE, cache=TRUE}
+#calculate daily returns
+myStocks_returns_daily <- myStocks %>%
+  tq_transmute(select     = adjusted,
+               mutate_fun = periodReturn,
+               period     = "daily",
+               type       = "log",
+               col_rename = "daily_returns",
+               cols = c(nested.col)) 
+ 
+#calculate monthly  returns
+myStocks_returns_monthly <- myStocks %>%
+  tq_transmute(select     = adjusted,
+               mutate_fun = periodReturn,
+               period     = "monthly",
+               type       = "arithmetic",
+               col_rename = "monthly_returns",
+               cols = c(nested.col))
+
+#calculate yearly returns
+myStocks_returns_annual <- myStocks %>%
+  group_by(symbol) %>%
+  tq_transmute(select     = adjusted,
+               mutate_fun = periodReturn,
+               period     = "yearly",
+               type       = "arithmetic",
+               col_rename = "yearly_returns",
+               cols = c(nested.col))
+```
+
+Moreover, we can summarise monthly returns for each of the stocks, calculating the minimum, maximum, median, mean and standard deviation of the monthly returns for each stock considered, as well as plotting the distribution for each of the stocks.
+
+```{r summarise_monthly_returns}
+
+summary_monthly_returns <- myStocks_returns_monthly %>%
+  group_by(symbol) %>%
+  summarise(min = min(monthly_returns), max = max(monthly_returns), median = median(monthly_returns), mean = mean(monthly_returns), sd = sd(monthly_returns)) %>%
+  mutate(min = sprintf("%0.4f", min), max = sprintf("%0.4f", max), median = sprintf("%0.4f", median), mean = sprintf("%0.4f", mean), sd = sprintf("%0.4f", sd)) 
+ 
+summary_monthly_returns
+
+```
+
+ 
+```{r density_monthly_returns, cache=TRUE}
+
+ggplot(myStocks_returns_monthly, aes(x = monthly_returns)) +
+  geom_density(fill = "grey", color = "black", alpha = 0.4) +
+  facet_grid(symbol ~ .) +
+  labs(title = "Selected stocks monthly returns distribution", x = "Monthly returns (%)" , y = "Frequency of returns", color="Stock Tickers")+
+  NULL
+
+```
+
+ 
+The graph above illustrates the distribution of monthly returns of seven company stocks, namely Astrazeneca (AZN), Boeing (BA), Alibaba (BABA), Coca-cola (KO), Nike (NKE), Visa (V) and Procter & Gamble (PG), as well as the S&P 500 (SPY) index.  To begin with, we can observe that the monthly returns of all stocks are nearly normally distributed. Moreover, we can draw two main conclusions:
+
+1. The riskiness of each stock
+2. The probability of distributing a positive monthly return on stockholders
+
+Initially, we can conclude that companies such as Alibaba and Boeing, that show a more flat distribution are the most risky stocks as a large proportion of their monthly returns can be highly positive, but also highly negative. This conclusion is reinforced by examining the table created above, as in fact these two stocks have the distribution with the highest standard deviation. Conversely, the S&P 500 index is the less risky option, with the vast majority of the monthly returns data being concentrated around the mean of the distribution. An interesting finding is that Coca-cola is a rather risk averse stock, an observation that can be attributed potentially to the fact that Coca-cola has managed to sell its product as a commodity, a product that customers are not likely to cut-down irrespectively of their financial status.
+
+Secondly, by examining the peak monthly returns of each stock, representing the mean of the distributions, we can conclude on which of the stocks can be considered to be more rewarding in the long-run. Observing the data we can see that no company stock has a clearly negative mean of monthly returns. Nevertheless, most stocks have a mean very close to 0, with Alibaba and Visa being the most profitable on the long-run.
+
+We can thus conclude that on the one hand, Alibaba would offer the acute trader the required volatility, as well as a mean positive monthly return to make a profit. On the other hand, S&P500 offers a rather less risky asset with a positive mean of monthly returns as well.
+
+ 
+Finally, by making a plot that shows the relationship between the expected monthly return (mean) of a stock and the risk (standard deviation) we can more clearly examine the relative risk vs reward relationship of the stocks.
+
+```{r risk_return_plot}
+
+ggplot(summary_monthly_returns, aes(x = sd, y = mean, color = symbol, label = symbol)) +
+  geom_point() +
+  geom_text_repel() +
+  NULL
+
+```
+
+On the above graph we can explore the relationship between the standard deviation with the mean. In fact, the conclusions drawn above are further reinforced through this graph and are even more vivid. Alibaba has indeed a relatively more positive mean of monthly returns than the majority of the other stocks, but is also the most risky of all, an attribute that is expected from the stock of a very fast-growing e-commerce company. Additionally, the Visa stock offers a rather risk averse profile and the highest mean reward. On the contrary, Boeing and AstraZeneca offer a rather low expected return, whilst at the same time being quite risky.

@@ -1,0 +1,1029 @@
+---
+categories:
+- ""
+- ""
+date: "2020-09-18"
+description: Airbnb price analysis
+draft: false
+image: pic12.jpg
+keywords: ""
+slug: blog7
+title: Predictive models of the price of Airbnbs in Singapore 
+---
+
+```{r, setup, include=FALSE}
+knitr::opts_chunk$set(
+  message = FALSE, 
+  warning = FALSE, 
+  tidy=FALSE,     # display code as typed
+  size="small")   # slightly smaller font for code
+options(digits = 3)
+
+# default figure size
+knitr::opts_chunk$set(
+  fig.width=6.75, 
+  fig.height=6.75,
+  fig.align = "center"
+)
+```
+
+```{r load-libraries, include=FALSE}
+library(tidyverse)  # Load ggplot2, dplyr, and all the other tidyverse packages
+library(mosaic)
+library(ggthemes)
+library(lubridate)
+library(here)
+library(skimr)
+library(janitor)
+library(httr)
+library(readxl)
+library(vroom)
+library(leaflet)
+library(readr)
+library(huxtable)
+library(sf)
+library(tmap)
+library(tmaptools)
+library(corrplot)
+library(ggpubr)
+library(GGally)
+library(car)
+library(carData)
+library(ggfortify)
+```
+
+![""](https://raw.githubusercontent.com/Gritzbach/my_website/master/Singapore.webp)
+
+# Introduction
+Airbnb is a vacation rental online marketplace based in San Francisco, California. Founded in 2008, the company has skyrocketed in popularity, with a private valuation of $18 billion and a plan to potentially go public within the year. 
+The scope of this work, is to analyse data about Airbnb listings and fit a model to predict the total cost for two people staying 4 nights in an AirBnB in Singapore. 
+
+We begin with exploratory data analysis and mapping of the key insights from the dataset before running various analyses including a demand analysis over time, a superhost analysis on the price and a heatmap of the average daily prices over the past 2 years, before running a thorough regression analysis. We then analyse our final results and wrap it up in our conclusion.
+
+# Exploratory Data Analysis (EDA)
+The aim of this section is to gain a better understanding of our data set. To do this, we utilize a variety of tools, such as data visualizations and correlation matrices. Our dataset comes from insideairbnb.com, and represent official AirBnb data. 
+
+## Loading the Data
+
+```{r, echo=TRUE}
+
+# Importing listings dataset
+singapore <- vroom("http://data.insideairbnb.com/singapore/sg/singapore/2020-06-22/data/listings.csv.gz") %>% 
+    clean_names()
+
+##dplyr::glimpse(singapore)
+
+# Importing reviews dataset
+reviews <- vroom("http://data.insideairbnb.com/singapore/sg/singapore/2020-06-22/data/reviews.csv.gz") %>% 
+    clean_names()
+
+##glimpse(reviews)
+
+```
+
+## Computing Summary Statistics
+
+To proceed with our analysis we will begin by selecting the specific variables of interest that will inform our regression models. On the figure below, we can see the summary statics of the selected variables and their rough distributions. By inspecting the distributions, all variables seem to be heavily skewed, which could potentially signify the existence of extreme data points, which will be dealt with in part 2.3.2.
+
+```{r}
+
+#select the variables that will be used for analysis
+singapore_listings <- singapore %>% 
+  
+  select(price, 
+         cleaning_fee, 
+         extra_people, 
+         property_type, 
+         room_type,
+         minimum_nights,
+         number_of_reviews, 
+         review_scores_rating,
+         review_scores_location,
+         longitude, 
+         latitude, 
+         neighbourhood, 
+         neighbourhood_group_cleansed,
+         zipcode,
+         host_is_superhost,
+         is_location_exact,
+         cancellation_policy,
+         host_response_time,
+         host_acceptance_rate,
+         security_deposit,
+         accommodates,
+         bedrooms,
+         bathrooms,
+         beds,
+         square_feet)
+  
+#calculate summary statistics and observe missing values if any
+skimr::skim(singapore_listings)
+```
+
+## Cleaning the Data 
+
+After having selected the variables of interest, we need to clean up the dataset to prepare it for analysis. We begin by handling the missing data, transforming price data to numerical values, visualising the distribution of our dependent variable, the price and filtering out extreme data.
+
+### Data Wrangling and Handling Missing Values
+
+```{r}
+singapore_listings <- singapore_listings %>%
+  
+  #convert all prices to numeric values
+  mutate(price = parse_number(price), 
+         cleaning_fee = parse_number(cleaning_fee),
+         extra_people = parse_number(extra_people),
+         security_deposit = parse_number(security_deposit)) %>%
+  
+  #replace all NA values for cleaning fee and security deposit to the numeric price 0
+  mutate(cleaning_fee = case_when(is.na(cleaning_fee) ~ 0, TRUE ~ cleaning_fee)) %>% 
+  mutate(security_deposit = case_when(is.na(security_deposit) ~ 0, TRUE ~ security_deposit))
+
+```
+
+### Dependent Variable Distribution
+
+Below is a histogram of all prices in our Singapore dataset. As we can see, the majority of accommodations are concentrated below $250 USD. In order to better visualise the distribution the price axis needs to be logarithmically transformed and this is how we are going to treat the price in the models we set up.
+
+```{r}
+
+log_price_hist <- 
+  ggplot(singapore_listings, aes(x= price))+ 
+  geom_point(stat = "count",colour="#FF5A5F") +
+   labs(x = "Price",
+       y = "Count", title="Most Singapore AirBnbs fall in the $100 - $400 Range",subtitle="Number of listings for each price") +
+  scale_x_log10()+
+  scale_y_log10()+
+  theme_bw()+
+  theme(panel.border = element_rect(colour = "#00A699", fill=NA, size=1))
+
+log_price_hist
+
+```
+
+
+A large majority of accomodations are concentrated below $250 USD.
+
+### Visualise Extreme Data 
+
+In this part we are visualising our dataset using boxplots, in order to identify outliers and proceed with filtering our extreme values.
+
+```{r}
+
+# Observe extreme values
+
+cleaning_box_1 <- 
+  ggplot(singapore_listings, aes(y=price)) +
+  geom_boxplot(colour="#00A699")+
+  labs(y="Price ($)")+
+  theme(plot.title = element_text(face = "bold")) +
+  theme(plot.subtitle = element_text(face = "bold", color = "grey35")) +
+  theme(plot.caption = element_text(color = "grey68")) + 
+  NULL
+
+cleaning_box_2 <-
+  ggplot(singapore_listings, aes(y=minimum_nights)) +
+  geom_boxplot(colour="#00A699")+
+  labs(y="Minimum Nights")+
+  theme(plot.title = element_text(face = "bold")) +
+  theme(plot.subtitle = element_text(face = "bold", color = "grey35")) +
+  theme(plot.caption = element_text(color = "grey68")) + 
+  NULL
+
+cleaning_box_3 <-
+  ggplot(singapore_listings, aes(y=cleaning_fee)) +
+  geom_boxplot(colour="#00A699")+
+  labs(y="Cleaning Fee ($)") +
+  theme(plot.title = element_text(face = "bold")) +
+  theme(plot.subtitle = element_text(face = "bold", color = "grey35")) +
+  theme(plot.caption = element_text(color = "grey68")) + 
+  NULL
+
+cleaning_box_4<- 
+  ggplot(singapore_listings, aes(y=extra_people)) +
+  geom_boxplot(colour="#00A699")+
+  labs(y="Fee for extra people ($)") +
+  theme(plot.title = element_text(face = "bold")) +
+  theme(plot.subtitle = element_text(face = "bold", color = "grey35")) +
+  theme(plot.caption = element_text(color = "grey68")) + 
+  NULL
+
+combined_box_plots <- 
+  ggarrange(cleaning_box_1, 
+            cleaning_box_2, 
+            cleaning_box_3, 
+            cleaning_box_4,
+            ncol = 2, nrow = 2) +
+  theme_bw()+
+  theme(panel.border = element_rect(colour = "#FF5A5F", fill=NA, size=1))
+  NULL
+
+annotate_figure(combined_box_plots, top = text_grob("Extreme Values by Variable", face = "bold"))
+
+```
+
+## Data Filtering
+
+After looking at the above shown figures, we chose to filter the following variables:
+
+1. Minimum nights to <= 4 nights
+2. Price to <= $1500
+3. Cleaning fee <= $200
+4. Fee for extra people <= $100
+
+Moreover, we determined the top 5 property types and allocated all other types into an "other" category.
+
+```{r}
+
+#Finding the most listed property types
+top_property_types <- singapore_listings %>% 
+  group_by(property_type) %>% 
+  summarise(count = count(property_type)) %>% 
+  top_n(5)
+
+#Adding column for the top 5 property types and categorising the rest as 'Other'
+filtered_listings <- singapore_listings %>%
+  mutate(prop_type_simplified = case_when(
+    property_type %in% c("Apartment","Condominium", "Hostel","House", "Serviced apartment") ~ property_type, 
+    TRUE ~ "Other"
+  ))
+
+# Filter dataframe by minimum nights <= 4
+filtered_listings <- filtered_listings %>% 
+  filter(minimum_nights <= 4, price <= 1500, cleaning_fee <= 200, extra_people <= 100)
+
+```
+
+## Correlation Matrix 
+
+In this section we will begin the correlation analysis that will assist in the development of the price regression models set-up in subsequent sections. In order to identify which variables are correlated and to what extent, we have made two correlation matrices. The first visually represent the relative strength of correlation of all variables between them considering their r-squared value, and the second graph provides more information regarding the specific distributions.
+
+```{r,fig.height=8, fig.width=8}
+
+#regression analysis data set created here
+regression_analysis <- filtered_listings %>%
+  mutate(price_4_nights = 
+           price*4 + 
+           cleaning_fee + 
+           extra_people, 
+         log_4_nights = log10(price_4_nights)
+         )
+
+#create correlation matrix for variables with data type "double"
+correlation_matrix <- regression_analysis %>%
+  summarise(
+         cleaning_fee,
+         extra_people,
+         minimum_nights,
+         number_of_reviews,
+         review_scores_rating,
+         review_scores_location,
+         longitude,
+         latitude,
+         security_deposit,
+         price_4_nights,
+         log_4_nights)
+
+#have a look on the correlation matrix data
+glimpse(correlation_matrix)
+
+#glance at the correlation relationship between different variables 
+ggcorr(correlation_matrix)+
+  theme_bw() +
+  NULL
+
+#show the correlations more clearly
+ggpairs(correlation_matrix, columns=1:11,
+    upper=list(continuous='cor'),
+    lower=list(continuous = 'points'),
+    diag=list(continuous='density'),
+    axisLabels='show') +
+    theme_bw()+
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
+  
+```
+
+# Mapping
+
+Singapore is a vibrant touristic city-state with the largest port by throughput consistently since 2015. Below we mapped AirBnbs in singapore with respect to their geographical location, depicting their price range, the property type and the 4 main neighbourhoods.  As expected, the majority of airbnb listings are located in the city-center, with higher prices predominantely in the area. Moreover, larger accommodation types such as hostels are also concentrated in the city center. On the contrary, the northern part of Singapore seems to be significantly less developed and less touristic, as the number of listings is lower.
+
+```{r}
+
+#mapping visualisation for listings by price
+pal <- colorNumeric(palette = "RdBu", domain = c(-100:1000))
+
+map_1 <- leaflet(data = filtered_listings) %>% 
+  addProviderTiles("OpenStreetMap.Mapnik") %>% 
+  addCircleMarkers(lng = ~longitude, 
+                   lat = ~latitude, 
+                   radius = 1, 
+                   color = ~pal(price), 
+                   fillOpacity = 0.4, 
+                   label = ~price)
+map_1
+
+#color by neighborhood
+pal <- colorFactor(palette = c("#484848", "#FC642D", "#767676", "#00A699", "#FF5A5F"), 
+               levels = c("North-East Region", "North Region", "East Region", "West Region", "Central Region"))
+
+map_2 <- leaflet(data = filtered_listings) %>% 
+  addProviderTiles("OpenStreetMap.Mapnik") %>% 
+  addCircleMarkers(lng = ~longitude, 
+                   lat = ~latitude, 
+                   radius = 1, 
+                   color = ~pal(neighbourhood_group_cleansed), 
+                   fillOpacity = 0.4, 
+                   label = ~neighbourhood_group_cleansed)
+
+#color by property type
+pal <- colorFactor(palette = c("#e98a15", "#a2ad59", "#1D3461", "#538083", "#a53860"), 
+               levels = c("Apartment","Condominium", "Hostel","House", "Serviced apartment"))
+
+map_3 <- leaflet(data = filtered_listings) %>% 
+  addProviderTiles("OpenStreetMap.Mapnik") %>% 
+  addCircleMarkers(lng = ~longitude, 
+                   lat = ~latitude, 
+                   radius = 1, 
+                   color = ~pal(prop_type_simplified), 
+                   fillOpacity = 0.5, 
+                   label = ~prop_type_simplified)
+map_2 
+map_3
+
+```
+
+
+
+The key insights that can be drawn from the above figures are listed below:
+
+Correlations between 0.40 - 0.69 that show a strong relationships between variables:
+
+1. *review_score_location VS review_score_rating (0.621)*  
+The accommodation locations that people give review score has strong relationship with the ratings people give.
+
+correlations between 0.30 - 0.39 indicate moderate relationship between variables:
+
+1. *extra ppl VS cleaning fee (0.319)*
+2. *min nights VS cleaning fee (0.357)*
+3. *security deposit VS cleaning fee (0.348)*
+
+Cleaning fee seems to have a moderate relationship with several variables such as, extra people, minimum nights and security deposit, which we definitely consider when we run the regression later.
+
+
+# Let's Visualize
+
+## Scatterplots 
+
+To further investigate the relationship between the key variables We have created the following scatterplots:
+
+- price VS number of reviews
+- price VS review score
+- price VS property type
+- price VS room type
+- price VS regions
+- price VS bedrooms
+- price VS number of people accomodates
+- price VS cleaning fees
+
+We started by plotting number of reviews versus price. It can be seen that having many reviews does not affect positively the price as one would expect. Ofcourse, other factors, such as the quality of reviews (e.g. negative or positive) and the overall competition of AirBns in Singapore cannot be determined, hence lowering the significance of the above relationship.
+
+```{r, price/review scatterplot, echo  = FALSE}
+
+# Scatter plot of price vs number of reviews
+ggplot(filtered_listings, aes(x = number_of_reviews, y = price)) + 
+  geom_point(colour="#FF5A5F") +
+  labs(title="Having more reviews doesn't lead to higher price",subtitle = "Scatterplot of Reviews and Prices",
+       x = "Number of Reviews",
+       y = "Price ($)") +
+  theme_bw()+
+  theme(panel.border = element_rect(colour = "#00A699", fill=NA, size=1))
+
+```
+
+The next plot shows the price versus review scores. An interesting insight on the graph is that only after a review score of 95% does the price seem to have a positive tendency. This could potentially signify high competition of really good AirBnbs giving a pricing advantage only to hosts with extremely good reviews.
+
+```{r, price/review score scatterplot, echo = FALSE}
+
+# Scatter plot of price vs review scores
+ggplot(filtered_listings, aes(x=review_scores_rating, y=price)) + 
+  geom_point(colour="#FF5A5F") +
+  geom_smooth() +
+  labs(title="Review scores of over 95% seem to impact price", subtitle = "Scatterplot of Review Score and Prices",
+       x = "Review Score (%)",
+       y = "Price ($)") +
+  theme_bw()+
+  theme(panel.border = element_rect(colour = "#00A699", fill=NA, size=1))
+
+```
+
+
+The next scatterplot shows the price versus the property type. We have simplified this data into the following variables: house, condominium, apartment, serviced apartment, hostel, and other. A general conclusion is difficult to be made, as most types of accommodations seem to hover around a similar range of prices. Nevertheless, serviced apartment prices start at a higher price level, which could signify an incentive for hosts to improve the quality of hospitality. Moreover, the price range of hostels as expected is lower than the rest, and finally, as expected, the range of prices for apartments and condominiums is quite high.
+
+```{r, price/prop type scatterplot, echo = FALSE}
+
+ggplot(filtered_listings, aes(x=prop_type_simplified, y=price)) + 
+  geom_point(colour="#FF5A5F") +
+  geom_smooth() +
+  labs(title = "Pricing for different property types",
+       x = "",
+       y = "Price ($)") +
+  theme_bw()+
+  theme(panel.border = element_rect(colour = "#00A699", fill=NA, size=1))
+
+```
+
+Next, we show the price versus the room type, and as expected entire homes and private rooms can reach a higher price. Nevertheless, what's interesting is that a large part of the dataset is located on the lower end, hence having similar prices for shared, as well as private rooms.
+
+```{r, price/room type scatterplot, echo = FALSE}
+
+ggplot(filtered_listings, aes(x=room_type, y=price)) + 
+  geom_point(colour="#FF5A5F") +
+  geom_smooth() +
+  labs(title="Hotels and shared rooms are budget friendly options!", subtitle = "Pricing for various room types",
+       x = "",
+       y = "Price ($)") +
+  theme_bw()+
+  theme(panel.border = element_rect(colour = "#00A699", fill=NA, size=1))
+
+```
+
+The next scatterplot shows the price versus the region that the property is in. The regions are groups of neighborhoods, and we are using this since the data provide a large amount of distinct neighborhoods. Here we can see how prices vary by region, and as discussed in section 3, the central region has a higher price range than the rest of the regions.
+
+```{r, price/region scatterplot, echo = FALSE}
+
+ggplot(filtered_listings, aes(x=neighbourhood_group_cleansed, y=price)) + 
+  geom_point(colour="#FF5A5F") +
+  geom_smooth() +
+  labs(title="Rates as high as $1500 for accomodation in Cental region", subtitle = "Region wise Pricing",
+       x = "",
+       y = "Price ($)") +
+  theme_bw()+
+  theme(panel.border = element_rect(colour = "#00A699", fill=NA, size=1))
+
+```
+
+The following scatterplot shows the price versus the number of bedrooms. As the number of bedrooms increases, we can see that the price also increases slightly (excluding the brief dropoff near 7.5 bedrooms). This is unsurprising as larger properties tend to be more expensive. Moreover, the observed dropoff comes as a result of one datapoint and can be thus deemed not significant.
+
+```{r, price/bedrooms scatterplot, echo = FALSE}
+
+ggplot(filtered_listings, aes(x=bedrooms, y=price)) + 
+  geom_point(colour="#FF5A5F") +
+  labs(title = "Pricing for different number of bedrooms",
+       x = "Number of Bedrooms",
+       y = "Price ($)") +
+  theme_bw() +
+  geom_smooth()+
+  theme(panel.border = element_rect(colour = "#00A699", fill=NA, size=1))
+
+```
+
+The next scatterplot shows the price versus the number of people the property accommodates. We would expect this plot to show a strong response from price, because usually if a property accommodates more people, it would be more expensive. The lack of a strong response could indicate that there is a large amount of smaller, luxury properties that are expensive, despite not accommodating many people. Additionally, it is possible that cheaper properties that can accommodate many people may be hostels.
+
+```{r, price/accommodate scatterplot, echo=FALSE}
+
+ggplot(filtered_listings, aes(x=accommodates, y=price)) + 
+  geom_point(colour="#FF5A5F") +
+  geom_smooth() +
+  labs(title = "Pricing as per accomodation sizes",
+       x = "Accommodation Capacity (Number of persons)",
+       y = "Price ($)") +
+  theme_bw()+
+  theme(panel.border = element_rect(colour = "#00A699", fill=NA, size=1))
+
+```
+
+Finally, the last scatterplot graphically represents the relationship between Price and cleaning fee, which seem to have a positive relationship. The higher the prices the higher the cleaning fees. The data points along the horizontal axis are from hosts that do not charge for cleaning fee, however we cannot know whether they incorporate it inflating their overall price.
+
+```{r, echo = FALSE}
+ggplot(filtered_listings, aes(x=price, y=cleaning_fee)) +
+  geom_point(colour="#FF5A5F")+
+  scale_x_log10()+
+  scale_y_log10()+
+  geom_smooth()+
+  labs(x="Price ($)", y="Cleaning Fee ($)", title="Be prepared to pay more for cleaning at expensive Airbnbs", subtitle="Relationship between price and cleaning fee")+
+  theme_bw()+
+  theme(plot.title = element_text(face = "bold")) +
+  theme(plot.subtitle = element_text(face = "bold", color = "grey35")) +
+  theme(plot.caption = element_text(color = "grey68")) + 
+  theme(panel.border = element_rect(colour = "#00A699", fill=NA, size=1))+
+  NULL
+```
+
+## Further Data Exploration
+
+In this section, we have explore the data in a different way, not necessarily trying to observe the correlation between variables. On the first graph we can see the share of the different types of accommodations across the 5 areas. As we can see apartments account for the vast majority of property types, however as we go out of the city center houses become relatively more than condominiums. Finally, in the second graph we can see that the median price is significantly increased. 
+
+***
+
+```{r fig.width=8}
+
+#get a count of types of props in each neighborhood
+prop_type_df <- filtered_listings %>% 
+  group_by(neighbourhood_group_cleansed, property_type) %>% 
+  summarize(Freq = n()) %>%
+  filter(property_type %in% c("Apartment","House","Condominium","Townhouse", "Loft")) 
+
+#find total sum of properties in each neighborhood to find the % breakdown
+total_prop_count <-  prop_type_df %>% 
+  group_by(neighbourhood_group_cleansed) %>% 
+  summarize(total = sum(Freq))
+
+#merge the dataframes so we can compute the % breakdown
+property_percent <- merge(prop_type_df, total_prop_count, by="neighbourhood_group_cleansed") %>%
+  mutate(percentage = Freq/total)
+
+#create bar graph that shows % of listing types by region
+ggplot(property_percent, 
+       aes(x=neighbourhood_group_cleansed, 
+           y=percentage, fill = property_type)) +
+  geom_bar(position = "dodge",stat="identity") + 
+  xlab("Region") + 
+  ylab("Count")+
+  scale_fill_discrete(name = "Property Type") + 
+  scale_y_continuous(labels = scales::percent) +
+  ggtitle("Which types of Listings are there in Singapore?",
+          subtitle = "Map showing count of listing type of neighborhood") + 
+          theme(plot.title = element_text(face = "bold")) +
+          theme(plot.subtitle = element_text(face = "bold", color = "grey35")) +
+          theme(plot.caption = element_text(color = "grey68")) + 
+  xlab("") + 
+  ylab("Listings (%)")+
+  theme_bw()
+
+# find median and mean for prop type by region
+summary_price_stats <- filtered_listings %>%
+  group_by(prop_type_simplified, neighbourhood_group_cleansed) %>%
+  summarise(median_price = median(price), avg_price = mean(price))
+
+median_price_by_hood <- ggplot(summary_price_stats, 
+                        aes(x = neighbourhood_group_cleansed, 
+                            y =  median_price, 
+                            colour = prop_type_simplified)) +
+  geom_point(size = 8) +
+  coord_flip() +
+  labs(x = "", 
+       y = "Median Price ($)", 
+       title = "Does region affect median rental price?", 
+       subtitle = "The Central region of Singapore tends to have higher median rental prices for houses, apartments, and condos"
+       )+
+  scale_color_discrete(name = "Property Type") +
+  theme(plot.title = element_text(face = "bold")) +
+  theme(plot.subtitle = element_text(face = "bold", color = "grey35")) +
+  theme(plot.caption = element_text(color = "grey68")) + 
+  theme_bw()+
+  NULL
+
+median_price_by_hood
+
+
+```
+
+## Superhost Analysis
+
+An interesting question that deserves an answer is whether being a super-host allows for a higher price setting power. To answer this question we have created two boxplots. The first one plots the price vs the area, and the second  plots the price vs the property type for superhosts and non-superhosts. We can see that indeed being a superhost offers some pricing flexibility, albeit small, which is reinforced for superhosts with appartments in the city center.
+
+```{r fig.width=8}
+
+# Superhost analysis
+
+superhost_df <- filtered_listings %>% 
+  select(price, cleaning_fee, neighbourhood_group_cleansed, host_is_superhost, prop_type_simplified) %>% 
+  mutate(price_log = log(price)) %>% 
+  drop_na(host_is_superhost)
+
+superhost_df %>% 
+  ggplot(aes(x = neighbourhood_group_cleansed, y = price_log, fill = host_is_superhost))+
+  geom_boxplot(width=0.5,lwd=1) +
+  theme_bw() +  
+  labs(title = "Being a superhost has a significant impact in the most competitive areas",
+       subtitle = "Distribuition of log(price) at different areas dependent on whether the host is a superhost or not",
+       x = "",
+       y = "Price"
+       )+
+  scale_fill_discrete(name = "Superhost?") +
+  theme(plot.title = element_text(face = "bold")) +
+  theme(plot.subtitle = element_text(face = "bold", color = "grey35")) +
+  theme(plot.caption = element_text(color = "grey68")) + 
+  NULL
+
+superhost_df %>% 
+  ggplot(aes(x = prop_type_simplified, y = price_log, fill = host_is_superhost))+
+  geom_boxplot(width=0.5,lwd=1) +
+  theme_bw() +  
+  labs(title = "Being a superhost has a profound impact in hostels and serviced\napartments, whilst less so in all other types",
+       subtitle = "Distribuition of log(price) at different property types dependent on whether the host is a superhost or not",
+       x = "",
+       y = "Log Price"
+       )+
+  scale_fill_discrete(name = "Superhost?") +
+  theme(plot.title = element_text(face = "bold")) +
+  theme(plot.subtitle = element_text(face = "bold", color = "grey35")) +
+  theme(plot.caption = element_text(color = "grey68")) + 
+  NULL
+
+```
+
+## Demand Analysis of Airbnb in Singapore
+
+The next piece of analysis we will perform is a demand for Airbnb in Singapore. We will have a look on the demand for Airbnb in Singapore over the years as well as at the seasonality of demand.
+
+### Popularity of Airbnb in Singapore
+
+We can clearly see some interesting patterns from the graph below:
+
+From 2010 to around 2018, Airbnb demand indicated by reviews increases faster and faster and staged a little bit in the first half of 2018 and continued increased fast until mid 2019. There are two reasons behind the drop of demand from mid 2019:
+  a) Singapore government announced in May 2019 that short-term rentals by platforms such as Airbnb remain illegal in Singapore
+  b) COVID-19 came in 2020 which discourages travelers
+
+```{r}
+#How popular is Airbnb in Singapore?
+
+reviewsNum <- reviews %>% 
+  group_by(date = reviews$date) %>% 
+  summarise(number = n())
+
+ggplot(reviewsNum, aes(date, number)) +
+  geom_point(na.rm=TRUE, color = "#56B4E9", alpha=0.5) +
+  geom_smooth(color = "#FF5A5F")+
+  ggtitle("How popular is Airbnb in Singapore?",
+          subtitle = "Number of Reviews across years") +
+  labs(x = "Year", y = "Number of Reviews", title="Number of reviews by year") +
+  theme_bw()+
+  theme(plot.title = element_text(face = "bold")) +
+  theme(plot.subtitle = element_text(face = "bold", color = "grey35")) +
+  theme(plot.caption = element_text(color = "grey68"))+
+  theme(panel.border = element_rect(colour = "#FF5A5F", fill=NA, size=1))
+
+```
+
+### Seasonality of Airbnb Demand in Singapore
+We chose 2017,2018,2019 to see the seasonality of demand since Airbnb gains stable growth in these years and 2017,2018 and 2019 give different overall demand trends.
+
+```{r}
+
+#demand 2017
+ggplot(reviewsNum[year(reviewsNum$date) == 2017,], aes(date, number)) +
+  geom_point(na.rm=TRUE, color = "#56B4E9", alpha=0.5) +
+  geom_smooth(color = "#FF5A5F")+
+  ggtitle("Seasonality of Airbnb in Singapore",
+          subtitle = "Number of Reviews across Months in 2017") +
+  labs(x = "Month", y = "Unique listings recieving reviews") +
+  theme_bw()+
+  theme(plot.title = element_text(face = "bold")) +
+  theme(plot.subtitle = element_text(face = "bold", color = "grey35")) +
+  theme(plot.caption = element_text(color = "grey68"))+
+  theme(panel.border = element_rect(colour = "#FF5A5F", fill=NA, size=1))
+
+#demand 2018
+ggplot(reviewsNum[year(reviewsNum$date) == 2018,], aes(date, number)) +
+  geom_point(na.rm=TRUE, color = "#56B4E9", alpha=0.5) +
+  geom_smooth(color = "#FF5A5F")+
+  ggtitle("Seasonality in Demand",
+          subtitle = "Number of Reviews across Months in 2018") +
+  labs(x = "Month", y = "Unique listings recieving reviews") +
+  theme_bw()+
+  theme(plot.title = element_text(face = "bold")) +
+  theme(plot.subtitle = element_text(face = "bold", color = "grey35")) +
+  theme(plot.caption = element_text(color = "grey68"))+
+  theme(panel.border = element_rect(colour = "#FF5A5F", fill=NA, size=1))
+
+#demand 2019
+demand2019 <- ggplot(reviewsNum[year(reviewsNum$date) == 2019,], aes(date, number)) +
+  geom_point(na.rm=TRUE, color = "#56B4E9", alpha=0.5) +
+  geom_smooth(color = "#FF5A5F")+
+  ggtitle("Seasonality in Demand",
+          subtitle = "Number of Reviews across Months in 2019") +
+  labs(x = "Month", y = "Unique listings recieving reviews") +
+  theme_bw()+
+  theme(plot.title = element_text(face = "bold")) +
+  theme(plot.subtitle = element_text(face = "bold", color = "grey35")) +
+  theme(plot.caption = element_text(color = "grey68"))+
+  theme(panel.border = element_rect(colour = "#FF5A5F", fill=NA, size=1))
+
+demand2019
+
+```
+
+No matter the overall demand trend is roaring(in 2017), staging(in 2018) or fluctuating(in 2019), the charts above show strong seasonality of Airbnb demand in Singapore: bottom in Apr and top in Sep.
+
+```{r, Packages and Libraries for Heatmap, echo=FALSE}
+
+# Package Installation
+
+ ##install.packages("remotes")
+ remotes::install_github("jbryer/makeR")
+ remotes::install_github("JohnCoene/g2r")
+
+# Library adding
+ 
+library(makeR)
+library(g2r)
+
+```
+The final part of analysis prior to building up our models, is a heatmap of Average Daily Prices from 2019 to 2020.
+```{r Calendar Data Extraction, echo=TRUE}
+
+# # Download calendar data about AirBnB bookings in Singapore from March 2019 to July 2020 (including later dates)
+# # Selecting the needed values to reduce amount of data
+
+ a <- calendar_june_2020 <- vroom("http://data.insideairbnb.com/singapore/sg/singapore/2020-06-22/data/calendar.csv.gz") %>% # June 2020
+   select(price, date, listing_id)
+
+ b <- calendar_may_2020 <- vroom("http://data.insideairbnb.com/singapore/sg/singapore/2020-05-27/data/calendar.csv.gz") %>% # May 2020
+   select(price, date, listing_id)
+
+ c <- calendar_april_2020 <- vroom("http://data.insideairbnb.com/singapore/sg/singapore/2020-04-26/data/calendar.csv.gz") %>% # April 2020
+   select(price, date, listing_id)
+
+ d <- calendar_march_2020 <- vroom("http://data.insideairbnb.com/singapore/sg/singapore/2020-03-21/data/calendar.csv.gz") %>% # March 2020
+   select(price, date, listing_id)
+
+ e <- calendar_february_2020 <- vroom("http://data.insideairbnb.com/singapore/sg/singapore/2020-02-27/data/calendar.csv.gz") %>% # February 2020
+   select(price, date, listing_id)
+
+ f <- calendar_january_2020 <- vroom("http://data.insideairbnb.com/singapore/sg/singapore/2020-01-26/data/calendar.csv.gz") %>% # January 2020
+   select(price, date, listing_id)
+
+ g <- calendar_december_2019 <- vroom("http://data.insideairbnb.com/singapore/sg/singapore/2019-12-28/data/calendar.csv.gz") %>% # December 2019
+   select(price, date, listing_id)
+
+ h <- calendar_november_2019 <- vroom("http://data.insideairbnb.com/singapore/sg/singapore/2019-11-26/data/calendar.csv.gz") %>% # November 2019
+   select(price, date, listing_id)
+
+ i <- calendar_october_2019 <- vroom("http://data.insideairbnb.com/singapore/sg/singapore/2019-10-25/data/calendar.csv.gz") %>% # October 2019
+   select(price, date, listing_id)
+
+ j <- calendar_september_2019 <- vroom("http://data.insideairbnb.com/singapore/sg/singapore/2019-09-25/data/calendar.csv.gz") %>% # September 2019
+   select(price, date, listing_id)
+
+ k <- calendar_august_2019 <- vroom("http://data.insideairbnb.com/singapore/sg/singapore/2019-08-28/data/calendar.csv.gz") %>% # August 2019
+   select(price, date, listing_id)
+
+ l <- calendar_july_2019 <- vroom("http://data.insideairbnb.com/singapore/sg/singapore/2019-07-21/data/calendar.csv.gz") %>% # July 2019
+   select(price, date, listing_id)
+
+ m <- calendar_june_2019 <- vroom("http://data.insideairbnb.com/singapore/sg/singapore/2019-06-25/data/calendar.csv.gz") %>% # June 2019
+   select(price, date, listing_id)
+
+ n <- calendar_may_2019 <- vroom("http://data.insideairbnb.com/singapore/sg/singapore/2019-05-23/data/calendar.csv.gz") %>% # May 2019
+   select(price, date, listing_id)
+
+ o <- calendar_april_2019 <- vroom("http://data.insideairbnb.com/singapore/sg/singapore/2019-04-20/data/calendar.csv.gz") %>% # April 2019
+   select(price, date, listing_id)
+
+ p <- calendar_march_2019 <- vroom("http://data.insideairbnb.com/singapore/sg/singapore/2019-03-18/data/calendar.csv.gz") %>% # March 2019
+   select(price, date, listing_id)
+
+
+# # Merging Data from all months and deleting
+
+ calendar_add_up <- bind_rows(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) %>% # Combine the data sets for all 16 months
+
+   filter(date < "2020-06-01" & date > "2019-05-31") %>% # Filter out one year of data to include as much "overlapping" data as possible
+
+   mutate(price = parse_number(price)) # Remove dollar writing
+ 
+```
+ 
+
+```{r}
+
+# # Color Setting
+
+ r2g <- c("#D61818", "#FFAE63", "#FFFFBD", "#B5E384")
+
+# # Create
+
+ groupedCalendar <- # Since we need the value for every single day, we need to group it
+
+   calendar_add_up %>% # Taking the cleaned data from above
+
+   filter(price < 1500) %>% # Setting an upper price limit to avoid a distorted mean
+
+   group_by(date) %>% # put the data for every single day together
+
+   summarise(totalPrice = sum(price, na.rm = TRUE), # Due to problems of the heatmap handling "mean" we need to do it the old-fashioned way
+
+             totalListings = n()) %>% # Devide the sum by the count
+
+   mutate(mean = totalPrice/totalListings) # This comes into a new column of daily average prices
+
+ calendarHeat(groupedCalendar$date, # Building the graphic by date
+
+              groupedCalendar$mean, # Taking the mean or average daily price as variable
+
+              ncolors = 99, # Giving a color range from green to red in 99 shades (unsure if fully used)
+
+              color = "r2g", # Giving a color selection (Red to Green)
+
+              varname="Average Price Levels for Singapore AirBnBs") # Naming the variable accordingly to get the right header
+
+```
+
+The heatmap above gives us a very good overview on the average prices for AirBnB rentings between June 2019 and May 2020.
+Among the results, we can see interesting trends and manifestations of specific events:
+
+1. We can clearly see the typical structure of higher prices on weekends, represented by the brighter colors for the lower two day-rows.
+2. Several bright or green spots show specific events. This includes the September 19-22 (Chinese Mid-Autumn Festival), December 20 - January 2 (Christmas and New Year), as well as January 24 - 27 (Chinese Spring Festival). During this time, the number of visitors increases the average price by up to 15%.
+3. Interestingly, we see an overall "brightening" during the beginning of 2020, which seems surprising given the COVID-19 Situation.
+3.1. While Singapore forced newly arrived people to quarantine in hotels, AirBnB has not been officially allowed by the government and even declared illegal recently. Under this premise, further research regarding a decline in offers as explanation for the increased average price should be looked into.
+
+
+# Regression Analysis
+
+To begin our regression, we created a price_4_nights variable using price, cleaning_fee, guests_included and extra_people. We will be using this as our target variable. This variable represents the cost of stayinig in Singapore for 4 nights. 
+
+We looked at the distribution of price during our exploratory data analysis. We found that price lacked normality so we used log10 to normalize it. Moving forward, we will use log_4_nights as our target variable.
+```{r}
+
+##create column for price of 4 nights
+regression_analysis <- filtered_listings %>%
+  mutate(price_4_nights = 
+           price*4 + 
+           cleaning_fee + 
+           extra_people, 
+         log_4_nights = log10(price_4_nights)
+         )
+
+#check histogram of new variable to check for normality 
+hist(regression_analysis$log_4_nights)
+
+## log of 4 nights give a much more normal data set so we will use this moving forward 
+
+# summary stats on 4 nights by property type 
+favstats(~log_4_nights | prop_type_simplified, data = regression_analysis)
+```
+We then created model1 using prop_type_simplified, number_of_reviews, and review_scores_rating.The review_scores_rating coefficient is .001, so for every review score increase, it increases the price by around 1. The prop_type_simplified coefficients are .095, -.312, -.107, .041, .28 for condominiums, hostels, houses, other, and serviced apartments, respectively. This translates to affecting the price by 1.24, -.49, .78, 1.10, and 1.91 depending on property type.  
+
+We also constructed model2, which is model1 plus room_type. The addition of room_type to our model increased our R2 from .171 to .473 and each room_type variable was significantly significant at p < .001. It is fair to say that room_type is a significant predictor of cost.
+
+In model3, we added host_is_superhost, which was significant with a coefficient of 2.03 and translates to affecting price positively by around 107USD. This indicates that superhosts have a pricing premium.
+
+For model4, we added the region indicator (neighbourhood_group_cleansed), which we decided to leave out of our model since it did not have a significant effect. To show how location can affect price, we decided to use latitude instead in one of our later models.
+
+Our first 4 models are shown below:
+```{r}
+##makes first 2 models using instructions from Kostis
+model1 <- lm(log_4_nights ~ 
+               prop_type_simplified + 
+               number_of_reviews + 
+               review_scores_rating, 
+             data = regression_analysis)
+
+model2 <- lm(log_4_nights ~ 
+               prop_type_simplified + 
+               number_of_reviews + 
+               review_scores_rating  + 
+               room_type, 
+             data = regression_analysis)
+
+#model 3 adds superhost 
+model3 <- lm(log_4_nights ~ 
+               prop_type_simplified + 
+               number_of_reviews + 
+               review_scores_rating  + 
+               room_type +
+               host_is_superhost, 
+             data = regression_analysis)
+
+##model 4 adds neigihbourhood group (cleansed)
+model4 <- lm(log_4_nights ~ 
+               prop_type_simplified + 
+               number_of_reviews + 
+               review_scores_rating  + 
+               room_type +
+               host_is_superhost +
+               neighbourhood_group_cleansed, 
+             data = regression_analysis)
+huxreg(model1, model2, model3, model4)
+
+```
+In model5, we wanted to add both the accommodates variable and the number of bedrooms variable, checking the VIF to make sure the two are not creating collinearitiy issues.
+
+In model6, we added latitiude because it is a good indicator of how location can affect price. We tried adding the region variable but it did not affect the model significantly. Also, since Singapore is so small, all of the longiitudes are the same so we did not have to include those.
+
+In model7, we added security deposit, which increased our R2 slightly.
+
+In model8, we can see that the is_location_exact indicator did not have a statistically significant effect, so moving forward we left it out of our model. We can conclude that having the exact location is not a significant indicator of price. 
+
+In model 9, we looked at the effect of cancellation policy after controlling for other variables. We found that this variable was only significant for properties that had a super strict 60 day policy, which was only on 4 properties, so we decided to exclude this from our final model.
+
+We chose to stick with model7 after checking for collinearity and looking at the residuals, and renamed it final_model. All of our variables align with our findings from our exploratory data analysis. Property and room type are significant in terms of pricing. Additionally, superhost properties tend to be more expensive, so we include that as a predictor. Further, the size of the property can also impact price, so we have include the number of people the property accommodates as well as the number of bedrooms. In EDA, we looked at the effects of location as well. While the cleansed neighbourhood variable did not have a significant effect on our model, we decided to use latitude as a way to incorporate location. Lastly, we found that more expensive properties tended to have higher security deposits, so we added security deposit as a predictor. Our final model had an R-squared of .597, meaning that our model represents 59.7% of the variation in price. 
+
+Models 6-9, the residuals for our final model, and a check for collinearity are shown below (the third on the table is what we chose for our final model): 
+```{r}
+
+##model 5 adds accommodates and bedroom count
+model5 <- lm(log_4_nights ~ 
+               prop_type_simplified + 
+               number_of_reviews + 
+               review_scores_rating  + 
+               room_type +
+               host_is_superhost +
+               accommodates +
+               bedrooms, 
+             data = regression_analysis)
+
+##added latiitude 
+model6 <- lm(log_4_nights ~ 
+               prop_type_simplified + 
+               number_of_reviews + 
+               review_scores_rating  + 
+               room_type +
+               host_is_superhost +
+               accommodates +
+               bedrooms +
+               latitude, 
+             data = regression_analysis)
+
+##add security deposit
+model7 <- lm(log_4_nights ~ 
+               prop_type_simplified + 
+               number_of_reviews + 
+               review_scores_rating  + 
+               room_type +
+               host_is_superhost +
+               accommodates +
+               bedrooms +
+               latitude +
+               security_deposit, 
+             data = regression_analysis)
+
+# added is_location_exact
+model8 <-  lm(log_4_nights ~ 
+               prop_type_simplified + 
+               number_of_reviews + 
+               review_scores_rating  + 
+               room_type +
+               host_is_superhost +
+               accommodates +
+               bedrooms +
+               latitude +
+               security_deposit +
+                is_location_exact, 
+             data = regression_analysis)
+
+#added cancellation policy 
+model9 <-  lm(log_4_nights ~ 
+               prop_type_simplified + 
+               number_of_reviews + 
+               review_scores_rating  + 
+               room_type +
+               host_is_superhost +
+               accommodates +
+               bedrooms +
+               latitude +
+               security_deposit +
+                is_location_exact +
+                cancellation_policy, 
+             data = regression_analysis)
+
+##summarize these models
+huxreg(model5, model6, model7, model8, model9)
+
+#residuals check
+autoplot(model7)
+
+##check for collinearity
+car::vif(model7) 
+
+##renaming the final model
+final_model <- model7
+
+## summarize final model 
+msummary(final_model)
+confint(final_model)
+```
+We then used our final model to predict the cost of 1 person staying in a private room in a Singapore apartment for 4 nights. We set number of reviews to 10 and the score rating to 90. Further, we elected to have a superhost for our accommodation. We have set latitude and security deposit to the averages for our dataset. We have printed the fitted value and a 95% confidence interval below. After anti-logging our results, we predicted a 302USD price with a 95% confidence interval [282,324]. 
+```{r}
+## Using our model to predict price
+predictors <- data.frame(prop_type_simplified = "Apartment",
+                         number_of_reviews = 10,
+                         review_scores_rating = 90,
+                         room_type = "Private room",
+                         host_is_superhost = TRUE,
+                         accommodates = 1,
+                         bedrooms = 1,
+                         latitude = 1.35,
+                         security_deposit = 93) 
+                
+predict(final_model, newdata = predictors, interval="confidence")
+
+```
+
+# Results & Conclusion
+Using our final model, we were able to predict a price of around $302. We are 95% confident that the cost of 4 nights (including cleaning fee and extra people) in a 1 bedroom private room in a Singapore apartment falls between 282 and 324 USD. To check our results for accuracy, we looked at the AirBnB website for similar listings and found that the average price per night for all properties was 115USD, which translates to around 460USD for 4 nights. Since we are only looking for private rooms that sleep 1, it makes sense that our prediction was a bit lower.
+
+# Conclusion
+The goal of our project was to be able to predict the priice of staying 4 nights in a Singapore AirBnB that met the following parameters:
+- private room
+- 1 bedroom
+- apartment
+- more than 10 reviews
+- average review rating above 90 
+
+During our Exploratory Data Analysis, we were able to identify the effects different variables had on price. Further, we were able to identify any multicollinearity before building our regression model. After building different models and identifying our final model, our R-squared approached the 60% level. 
+
+Using our final model, we predicted that 4 nights in Singapore with our specific parameters would cost around 302 USD. We had a 95% confidence interval between 282 and 324 USD. 
+
+In the future, we would need more complete data to provide the best possible model. 

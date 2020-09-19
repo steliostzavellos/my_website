@@ -1,0 +1,171 @@
+---
+categories:
+- ""
+- ""
+date: "2020-09-18"
+description: NYSE stock data analysis
+draft: false
+image: pic13.jpg
+keywords: ""
+slug: blog6
+title: Stock analysis
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<pre class="r"><code>knitr::opts_chunk$set(
+  message = FALSE,
+  warning = FALSE,
+  tidy=FALSE,     # display code as typed
+  size=&quot;small&quot;)   # slightly smaller font for code
+options(digits = 3)
+
+# default figure size
+knitr::opts_chunk$set(
+  fig.width=6.75,
+  fig.height=6.75,
+  fig.align = &quot;center&quot;
+)</code></pre>
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>The aim of the specific document is to analyse New York Stock Exchange data using R, and more specifically using the tidyverse and ggplot2 packages. We make use of the <code>tidyquant</code> package to download historical data of stock prices, calculate returns, and examine the distribution of returns. We have specifically chosen to analyse data from January 2011 up until August 2020. By analysing the dataset, we come up with a measure of the riskiness of 7 company stocks and the S&amp;P500 index.</p>
+</div>
+<div id="returns-of-financial-stocks" class="section level1">
+<h1>Returns of Financial Stocks</h1>
+<p>To begin with, we create a dataset containing 508 stocks listed on the NYSE. The dataset has a number of different variables as follows:</p>
+<ul>
+<li><code>symbol</code> : the Ticker symbol of each stock</li>
+<li><code>name</code>: the name of the listed company</li>
+<li><code>ipo_year</code>: the year the company completed its Initial Public Offering and got listed</li>
+<li><code>sector</code>: the sector the company operates in</li>
+<li><code>industry</code>: the industry the company operates in</li>
+<li><code>summary_quote</code>: the online link to the company’s quote price</li>
+</ul>
+<pre class="r"><code># Download stock data using the tidyquant package
+nyse &lt;- vroom(here::here(&quot;data&quot;,&quot;nyse.csv&quot;))</code></pre>
+<p>Based on this dataset, we can create a table and a bar plot that show the number of companies per sector.</p>
+<pre class="r"><code># Table
+nyse_by_sector &lt;- nyse %&gt;%
+  group_by(sector) %&gt;%
+  summarise(n = n())
+nyse_by_sector</code></pre>
+<pre><code>## # A tibble: 12 x 2
+##    sector                    n
+##    &lt;chr&gt;                 &lt;int&gt;
+##  1 Basic Industries         39
+##  2 Capital Goods            45
+##  3 Consumer Durables         8
+##  4 Consumer Non-Durables    31
+##  5 Consumer Services        79
+##  6 Energy                   42
+##  7 Finance                  97
+##  8 Health Care              45
+##  9 Miscellaneous            12
+## 10 Public Utilities         60
+## 11 Technology               40
+## 12 Transportation           10</code></pre>
+<pre class="r"><code># Plot
+ggplot(nyse_by_sector, aes(x = reorder(sector, -n), y = n)) +
+  geom_col(fill=&quot;#001e62&quot;,alpha=0.7)+
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(title = &quot;Number of NYSE companies per sector&quot;, x = &quot;Sector&quot;, y = &quot;Number of listed companies&quot;)+
+  NULL</code></pre>
+<p><img src="/blogs/blog6_files/figure-html/companies_per_sector-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p>Next, let’s choose some nyse stocks and their ticker symbols and download some data. We have selected to examine the stocks from Alibaba (BABA), Visa (V), Procter &amp; Gamble (PG), Coca-cola (KO), Boeing (BA), Nike (NKE), AstraZeneca (AZN) and the SP500 ETF (Exchange Traded Fund) for a period approximately 10 years. The dataset has a number of different variables as follows:</p>
+<ul>
+<li><code>symbol</code> : the Ticker symbol of each stock</li>
+<li><code>date</code>: stock price date</li>
+<li><code>open</code>: the price of the stock at opening of the stock exchange</li>
+<li><code>high</code>: the max price of each stock on each day</li>
+<li><code>low</code>: the min price of each stock on each day</li>
+<li><code>close</code>: the price of the stock at closing of the stock exchange</li>
+<li><code>volume</code>: the number of stocks traded that day</li>
+<li><code>adjusted</code>: the adjusted closing price of the stock, which adjusts for any stock splits or dividends paid</li>
+</ul>
+<pre class="r"><code>myStocks &lt;- c(&quot;BABA&quot;,&quot;V&quot;,&quot;PG&quot;,&quot;KO&quot;,&quot;BA&quot;,&quot;NKE&quot;,&quot;AZN&quot;,&quot;SPY&quot; ) %&gt;%
+  tq_get(get  = &quot;stock.prices&quot;,
+         from = &quot;2011-01-01&quot;,
+         to   = &quot;2020-08-31&quot;) %&gt;%
+  group_by(symbol)
+
+glimpse(myStocks)</code></pre>
+<pre><code>## Rows: 18,514
+## Columns: 8
+## Groups: symbol [8]
+## $ symbol   &lt;chr&gt; &quot;BABA&quot;, &quot;BABA&quot;, &quot;BABA&quot;, &quot;BABA&quot;, &quot;BABA&quot;, &quot;BABA&quot;, &quot;BABA&quot;, &quot;B...
+## $ date     &lt;date&gt; 2014-09-19, 2014-09-22, 2014-09-23, 2014-09-24, 2014-09-2...
+## $ open     &lt;dbl&gt; 92.7, 92.7, 88.9, 88.5, 91.1, 89.7, 89.6, 89.0, 88.7, 86.3...
+## $ high     &lt;dbl&gt; 99.7, 92.9, 90.5, 90.6, 91.5, 90.5, 89.7, 90.9, 88.9, 88.2...
+## $ low      &lt;dbl&gt; 89.9, 89.5, 86.6, 87.2, 88.5, 88.7, 88.0, 88.5, 86.0, 85.6...
+## $ close    &lt;dbl&gt; 93.9, 89.9, 87.2, 90.6, 88.9, 90.5, 88.8, 88.8, 86.1, 87.1...
+## $ volume   &lt;dbl&gt; 2.72e+08, 6.67e+07, 3.90e+07, 3.21e+07, 2.86e+07, 1.83e+07...
+## $ adjusted &lt;dbl&gt; 93.9, 89.9, 87.2, 90.6, 88.9, 90.5, 88.8, 88.8, 86.1, 87.1...</code></pre>
+<p>To proceed we will calculate the average % returns of each stock. Given the adjusted closing prices, our first step is to calculate daily, monthly and annual returns.</p>
+<pre class="r"><code>#calculate daily returns
+myStocks_returns_daily &lt;- myStocks %&gt;%
+  tq_transmute(select     = adjusted,
+               mutate_fun = periodReturn,
+               period     = &quot;daily&quot;,
+               type       = &quot;log&quot;,
+               col_rename = &quot;daily_returns&quot;,
+               cols = c(nested.col)) 
+ 
+#calculate monthly  returns
+myStocks_returns_monthly &lt;- myStocks %&gt;%
+  tq_transmute(select     = adjusted,
+               mutate_fun = periodReturn,
+               period     = &quot;monthly&quot;,
+               type       = &quot;arithmetic&quot;,
+               col_rename = &quot;monthly_returns&quot;,
+               cols = c(nested.col))
+
+#calculate yearly returns
+myStocks_returns_annual &lt;- myStocks %&gt;%
+  group_by(symbol) %&gt;%
+  tq_transmute(select     = adjusted,
+               mutate_fun = periodReturn,
+               period     = &quot;yearly&quot;,
+               type       = &quot;arithmetic&quot;,
+               col_rename = &quot;yearly_returns&quot;,
+               cols = c(nested.col))</code></pre>
+<p>Moreover, we can summarise monthly returns for each of the stocks, calculating the minimum, maximum, median, mean and standard deviation of the monthly returns for each stock considered, as well as plotting the distribution for each of the stocks.</p>
+<pre class="r"><code>summary_monthly_returns &lt;- myStocks_returns_monthly %&gt;%
+  group_by(symbol) %&gt;%
+  summarise(min = min(monthly_returns), max = max(monthly_returns), median = median(monthly_returns), mean = mean(monthly_returns), sd = sd(monthly_returns)) %&gt;%
+  mutate(min = sprintf(&quot;%0.4f&quot;, min), max = sprintf(&quot;%0.4f&quot;, max), median = sprintf(&quot;%0.4f&quot;, median), mean = sprintf(&quot;%0.4f&quot;, mean), sd = sprintf(&quot;%0.4f&quot;, sd)) 
+ 
+summary_monthly_returns</code></pre>
+<pre><code>## # A tibble: 8 x 6
+##   symbol min     max    median mean   sd    
+##   &lt;chr&gt;  &lt;chr&gt;   &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt; 
+## 1 AZN    -0.1382 0.2184 0.0099 0.0138 0.0613
+## 2 BA     -0.4579 0.2568 0.0203 0.0145 0.0862
+## 3 BABA   -0.1957 0.4216 0.0101 0.0209 0.1053
+## 4 KO     -0.1655 0.0840 0.0125 0.0075 0.0413
+## 5 NKE    -0.1886 0.1563 0.0178 0.0185 0.0620
+## 6 PG     -0.0914 0.1161 0.0098 0.0101 0.0411
+## 7 SPY    -0.1249 0.1270 0.0146 0.0112 0.0381
+## 8 V      -0.1136 0.1585 0.0256 0.0236 0.0492</code></pre>
+<pre class="r"><code>ggplot(myStocks_returns_monthly, aes(x = monthly_returns)) +
+  geom_density(fill = &quot;grey&quot;, color = &quot;black&quot;, alpha = 0.4) +
+  facet_grid(symbol ~ .) +
+  labs(title = &quot;Selected stocks monthly returns distribution&quot;, x = &quot;Monthly returns (%)&quot; , y = &quot;Frequency of returns&quot;, color=&quot;Stock Tickers&quot;)+
+  NULL</code></pre>
+<p><img src="/blogs/blog6_files/figure-html/density_monthly_returns-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p>The graph above illustrates the distribution of monthly returns of seven company stocks, namely Astrazeneca (AZN), Boeing (BA), Alibaba (BABA), Coca-cola (KO), Nike (NKE), Visa (V) and Procter &amp; Gamble (PG), as well as the S&amp;P 500 (SPY) index. To begin with, we can observe that the monthly returns of all stocks are nearly normally distributed. Moreover, we can draw two main conclusions:</p>
+<ol style="list-style-type: decimal">
+<li>The riskiness of each stock</li>
+<li>The probability of distributing a positive monthly return on stockholders</li>
+</ol>
+<p>Initially, we can conclude that companies such as Alibaba and Boeing, that show a more flat distribution are the most risky stocks as a large proportion of their monthly returns can be highly positive, but also highly negative. This conclusion is reinforced by examining the table created above, as in fact these two stocks have the distribution with the highest standard deviation. Conversely, the S&amp;P 500 index is the less risky option, with the vast majority of the monthly returns data being concentrated around the mean of the distribution. An interesting finding is that Coca-cola is a rather risk averse stock, an observation that can be attributed potentially to the fact that Coca-cola has managed to sell its product as a commodity, a product that customers are not likely to cut-down irrespectively of their financial status.</p>
+<p>Secondly, by examining the peak monthly returns of each stock, representing the mean of the distributions, we can conclude on which of the stocks can be considered to be more rewarding in the long-run. Observing the data we can see that no company stock has a clearly negative mean of monthly returns. Nevertheless, most stocks have a mean very close to 0, with Alibaba and Visa being the most profitable on the long-run.</p>
+<p>We can thus conclude that on the one hand, Alibaba would offer the acute trader the required volatility, as well as a mean positive monthly return to make a profit. On the other hand, S&amp;P500 offers a rather less risky asset with a positive mean of monthly returns as well.</p>
+<p>Finally, by making a plot that shows the relationship between the expected monthly return (mean) of a stock and the risk (standard deviation) we can more clearly examine the relative risk vs reward relationship of the stocks.</p>
+<pre class="r"><code>ggplot(summary_monthly_returns, aes(x = sd, y = mean, color = symbol, label = symbol)) +
+  geom_point() +
+  geom_text_repel() +
+  NULL</code></pre>
+<p><img src="/blogs/blog6_files/figure-html/risk_return_plot-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p>On the above graph we can explore the relationship between the standard deviation with the mean. In fact, the conclusions drawn above are further reinforced through this graph and are even more vivid. Alibaba has indeed a relatively more positive mean of monthly returns than the majority of the other stocks, but is also the most risky of all, an attribute that is expected from the stock of a very fast-growing e-commerce company. Additionally, the Visa stock offers a rather risk averse profile and the highest mean reward. On the contrary, Boeing and AstraZeneca offer a rather low expected return, whilst at the same time being quite risky.</p>
+</div>
