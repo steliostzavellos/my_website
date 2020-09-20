@@ -94,7 +94,7 @@ disqusShortname = ""
     [[params.tiles.showcase]]
       title = "About me"
       subtitle = "Stelios Tzavellos, MAM Student at LBS"
-      image = "pic02.jpg"
+      image = "stelios.jpg"
       url = "post/post_1"
     
     [[params.tiles.showcase]]
