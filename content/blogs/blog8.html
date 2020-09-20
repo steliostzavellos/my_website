@@ -3,309 +3,74 @@ categories:
 - ""
 - ""
 date: "2020-09-18"
-description: Climate change
+description: Analysing the relationship between firearm possession and causes of death across the 50 US States
 draft: false
-image: pic14.jpg
+image: pic13.jpg
 keywords: ""
-slug: blog8
-title: Climate change and temperature anomalies 
+slug: blog8 
+title: Firearm homicide and suicide in the US
 ---
 
 <script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
-<script src="/rmarkdown-libs/kePrint/kePrint.js"></script>
-<link href="/rmarkdown-libs/lightable/lightable.css" rel="stylesheet" />
 
 
+<pre class="r"><code>knitr::opts_chunk$set(
+  message = FALSE,
+  warning = FALSE,
+  tidy=FALSE,     # display code as typed
+  size=&quot;small&quot;)   # slightly smaller font for code
+options(digits = 3)
+
+# default figure size
+knitr::opts_chunk$set(
+  fig.width=6.75,
+  fig.height=6.75,
+  fig.align = &quot;center&quot;
+)</code></pre>
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
-<p>The earth’s climate has changed throughout history. Most of the observed climate changes can be attributed to small variations in the Earth’s orbit, affecting the amount of solar energy received. Nevertheless, the current warming trend is extremely likely (greater than 95 percent probability) to be the result of human activity since the mid-20th century and proceeding at a rate that is unprecedented over decades to millennia. To study climate change, we have used data on the <em>Combined Land-Surface Air and Sea-Surface Water Temperature Anomalies</em> in the Northern Hemisphere from <a href="https://data.giss.nasa.gov/gistemp">NASA’s Goddard Institute for Space Studies</a>.</p>
-<p>The base period to calculate changes is taken as 1951-1980.While loading the data, <code>skip</code> and <code>na</code> are used to remove the first row and missing values respectively:</p>
-<pre class="r"><code>weather &lt;- 
-  read_csv(&quot;https://data.giss.nasa.gov/gistemp/tabledata_v3/NH.Ts+dSST.csv&quot;, 
-           skip = 1, 
-           na = &quot;***&quot;)</code></pre>
-<p>We’ve converted the dataframe from wide to ‘long’ format and defined variables month as <code>month</code>, and the temperature deviation values as <code>delta</code>.</p>
-<pre class="r"><code>glimpse(weather)</code></pre>
-<pre><code>## Rows: 140
-## Columns: 19
-## $ Year  &lt;dbl&gt; 1880, 1881, 1882, 1883, 1884, 1885, 1886, 1887, 1888, 1889, 1...
-## $ Jan   &lt;dbl&gt; -0.54, -0.19, 0.22, -0.59, -0.23, -1.00, -0.68, -1.07, -0.53,...
-## $ Feb   &lt;dbl&gt; -0.38, -0.25, 0.22, -0.67, -0.11, -0.37, -0.68, -0.58, -0.59,...
-## $ Mar   &lt;dbl&gt; -0.26, 0.02, 0.00, -0.16, -0.65, -0.21, -0.57, -0.36, -0.58, ...
-## $ Apr   &lt;dbl&gt; -0.37, -0.02, -0.36, -0.27, -0.62, -0.53, -0.34, -0.42, -0.24...
-## $ May   &lt;dbl&gt; -0.11, -0.06, -0.32, -0.32, -0.42, -0.55, -0.34, -0.27, -0.16...
-## $ Jun   &lt;dbl&gt; -0.22, -0.36, -0.38, -0.26, -0.52, -0.47, -0.43, -0.20, -0.04...
-## $ Jul   &lt;dbl&gt; -0.23, -0.06, -0.37, -0.09, -0.48, -0.39, -0.20, -0.23, 0.04,...
-## $ Aug   &lt;dbl&gt; -0.24, -0.03, -0.14, -0.26, -0.50, -0.44, -0.47, -0.52, -0.19...
-## $ Sep   &lt;dbl&gt; -0.26, -0.23, -0.17, -0.33, -0.45, -0.32, -0.34, -0.17, -0.12...
-## $ Oct   &lt;dbl&gt; -0.32, -0.40, -0.53, -0.21, -0.41, -0.30, -0.31, -0.40, 0.04,...
-## $ Nov   &lt;dbl&gt; -0.37, -0.42, -0.32, -0.40, -0.48, -0.28, -0.45, -0.19, -0.03...
-## $ Dec   &lt;dbl&gt; -0.48, -0.28, -0.42, -0.25, -0.40, 0.00, -0.17, -0.43, -0.26,...
-## $ `J-D` &lt;dbl&gt; -0.32, -0.19, -0.21, -0.32, -0.44, -0.40, -0.42, -0.40, -0.22...
-## $ `D-N` &lt;dbl&gt; NA, -0.21, -0.20, -0.33, -0.43, -0.44, -0.40, -0.38, -0.24, -...
-## $ DJF   &lt;dbl&gt; NA, -0.31, 0.06, -0.56, -0.20, -0.59, -0.45, -0.61, -0.52, -0...
-## $ MAM   &lt;dbl&gt; -0.24, -0.02, -0.22, -0.25, -0.56, -0.43, -0.42, -0.35, -0.33...
-## $ JJA   &lt;dbl&gt; -0.23, -0.15, -0.30, -0.20, -0.50, -0.44, -0.37, -0.32, -0.06...
-## $ SON   &lt;dbl&gt; -0.32, -0.35, -0.34, -0.32, -0.44, -0.30, -0.37, -0.25, -0.04...</code></pre>
-<pre class="r"><code>## convert df from wide to long, creating a &quot;Month&quot; and a &quot;Delta&quot; variable 
+<p>The aim of the specific document is to analyse a dataset obtained from CDC, which spans over the 50 states in US, for the years 2008-2016, and contains firearm possession information and causes of death(suicide/homicide) of non-hispanic black and white males. By analysing the dataset we created a graph that describes the relationship between firearm homicide and suicide among white men along with reported gun ownership. The plot is referring to the journal article “Riddell_Annals_Hom-Sui-Disparities.pdf”.</p>
+<pre class="r"><code>data_set &lt;- vroom(here::here(&quot;data&quot;, &quot;CDC_Males.csv&quot;))
+# glimpse(data_set)
 
-tidyweather &lt;- weather %&gt;% select(1:13) %&gt;% pivot_longer(cols = 2:13, names_to = &quot;month&quot;, values_to = &quot;delta&quot;)
-glimpse(tidyweather)</code></pre>
-<pre><code>## Rows: 1,680
-## Columns: 3
-## $ Year  &lt;dbl&gt; 1880, 1880, 1880, 1880, 1880, 1880, 1880, 1880, 1880, 1880, 1...
-## $ month &lt;chr&gt; &quot;Jan&quot;, &quot;Feb&quot;, &quot;Mar&quot;, &quot;Apr&quot;, &quot;May&quot;, &quot;Jun&quot;, &quot;Jul&quot;, &quot;Aug&quot;, &quot;Sep&quot;...
-## $ delta &lt;dbl&gt; -0.54, -0.38, -0.26, -0.37, -0.11, -0.22, -0.23, -0.24, -0.26...</code></pre>
-<p>Let us plot the data using a time-series scatter plot, and add a trendline. To do that, we first need to create a new variable called <code>date</code> in order to ensure that the <code>delta</code> values are plot chronologically.</p>
-<pre class="r"><code>tidyweather &lt;- tidyweather %&gt;%
-  mutate(date = ymd(paste(as.character(Year), month, &quot;1&quot;)),
-         month = month(date),
-         year = year(date))
+library(ggpubr)
+# filter data set to get &quot;Firearm&quot; data
+firearm_data &lt;- data_set %&gt;%
+  filter(type==&quot;Firearm&quot;) 
+ 
+# plot suicide rate to homicide rate
 
-ggplot(tidyweather, aes(x=date, y = delta, colour = date)) +
-  geom_point() +
-  geom_smooth(color=&quot;white&quot;) + 
-  theme(plot.title = element_text(face = &quot;bold&quot;, size = 18)) + 
-  theme_bw() + 
-  scale_colour_gradient(low=&quot;blue2&quot;, high=&quot;red&quot;) +
-  labs (
-    title = &quot;Temperature Anomalies Heating Up Over Past Century&quot;, 
-  subtitle = &quot;Combined land-surface air and sea-surface water temperature anomalies in the northern \nhemisphere have shifted from negative to positive in the last 100 years&quot;, x = &quot;Year&quot;, y = &quot;Delta&quot;, caption = &quot;Source: NASA&#39;s Goddard Institute for Space Studies&quot;) +
-  theme(legend.position = &quot;none&quot;, plot.title = element_text(face = &quot;bold&quot;), axis.text=element_text(size=12),
-        axis.title=element_text(size=14,face=&quot;bold&quot;))</code></pre>
-<p><img src="/blogs/blog8_files/figure-html/scatter_plot-1.png" width="648" style="display: block; margin: auto;" /></p>
-<p>On analysing the temperature difference through different months, we find that the effects of increasing temperature appear to be homogeneous throughout different months.</p>
-<pre class="r"><code>## add to the title/sub , can i thin the smoothing line? , make the theme prettier (no grey months)
-ggplot(tidyweather, aes(x=date, y = delta, colour = date))+
-  geom_point()+
-  geom_smooth(color=&quot;white&quot;) +
-  theme_bw() +
-  scale_colour_gradient(low=&quot;blue2&quot;, high=&quot;red&quot;) +
-  labs (
-    title = &quot;Monthly Anomalies Appear Homogeneous Over Time &quot;, 
-  subtitle = &quot;Anomalies appear not to discriminate based on month, with monthly patterns being nearly \nindistinguishable from one another&quot;, x = &quot;Year&quot;, y = &quot;Delta&quot;, caption = &quot;Source: NASA&#39;s Goddard Institute for Space Studies&quot;) +
-  facet_wrap(~month) + 
-  theme(legend.position = &quot;none&quot;, plot.title = element_text(face = &quot;bold&quot;), axis.text=element_text(size=12),
-        axis.title=element_text(size=14,face=&quot;bold&quot;))</code></pre>
-<p><img src="/blogs/blog8_files/figure-html/facet_wrap-1.png" width="648" style="display: block; margin: auto;" /></p>
-<p>Here, the years are divided into intervals to help study the data better:</p>
-<pre class="r"><code>comparison &lt;- tidyweather %&gt;% 
-  filter(year&gt;= 1881) %&gt;%     #remove years prior to 1881
-  #create new variable &#39;interval&#39;, and assign values based on criteria below:
-  mutate(interval = case_when(
-    Year %in% c(1881:1920) ~ &quot;1881-1920&quot;,
-    Year %in% c(1921:1950) ~ &quot;1921-1950&quot;,
-    Year %in% c(1951:1980) ~ &quot;1951-1980&quot;,
-    Year %in% c(1981:2010) ~ &quot;1981-2010&quot;,
-    TRUE ~ &quot;2011-present&quot;
-  ))</code></pre>
-<p>Now that we have the <code>interval</code> variable, we can create a density plot to study the distribution of monthly deviations (<code>delta</code>), grouped by the different time periods we are interested in. Set <code>fill</code> to <code>interval</code> to group and colour the data by different time periods.</p>
-<pre class="r"><code>## fix the colors 
-ggplot(comparison, aes(x=delta, fill=interval, colour = interval))+
+replica &lt;- ggplot(firearm_data, aes(x = adjusted.suicide.White, y = adjusted.homicide.White)) +  
   
-  #density plot with tranparency set to 20%
+  # color points by gun ownership and size by population
+  geom_point(aes(fill = gun.house.prev.category, size = average.pop.white), col=&quot;black&quot;, pch=21)+  
   
-  geom_density(alpha=0.2) +   
-  theme_bw() +                
-  labs(
-    title = &quot;Density Plot for Monthly Temperature Anomalies&quot;,
-    subtitle = &quot;A clear increase in temperature anomalies shown through time periods \nfrom 1881 to present day&quot;,
-    x = &quot;Delta&quot;,
-    y     = &quot;Density&quot;,
-    caption = &quot;Source: NASA&#39;s Goddard Institute for Space Studies&quot;)  + 
-  scale_fill_manual(values = c(&quot;blue2&quot;, &quot;darkorchid4&quot;, &quot;purple1&quot;, &quot;red1&quot;, &quot;red&quot;))  + 
-  scale_color_manual(values = c(&quot;blue2&quot;, &quot;darkorchid4&quot;, &quot;purple1&quot;, &quot;red1&quot;, &quot;red&quot;)) +
-  theme(plot.title = element_text(face = &quot;bold&quot;), axis.text=element_text(size=12),
-        axis.title=element_text(size=14,face=&quot;bold&quot;))+
-  guides(color=guide_legend(&quot;Time Period&quot;),fill=guide_legend(&quot;Time Period&quot;))</code></pre>
-<p>So far, we have been working with monthly anomalies. However, getting the average annual anomalie by using <code>group_by()</code> and <code>summarise()</code> produces a very interesting followed by a scatter plot to display the result.</p>
-<pre class="r"><code>#creating yearly averages
-average_annual_anomaly &lt;- tidyweather %&gt;% 
-  group_by(year) %&gt;%   #grouping data by Year
+  # add labels to graph to make it descriptive
+  labs(title=&quot;Relation between Firearm Homicide and Suicide&quot;, subtitle = &quot;For white men, along with reported gun ownership state-wise, years 2008-2016 (R: Spearman&#39;s rho)&quot;,
+       x=&quot;White suicide rate (per 100,000 per year)&quot;, y = &quot;White homicide rate (per 100,000 per year)&quot;) + 
   
-  # creating summaries for mean delta 
-  # use `na.rm=TRUE` to eliminate NA (not available) values 
-  summarise(annual_average_anomaly = mean(delta, na.rm=TRUE)) 
+  # using a black and white theme
+  theme_bw()+
 
-#plotting the data:
-ggplot(average_annual_anomaly, aes(x=year, y= annual_average_anomaly, colour = year))+
-  geom_point()+
-  
-  #Fit the best fit line, using LOESS method
-  geom_smooth(colour = &quot;white&quot;) +
-  
-  #change to theme_bw() to have white background + black frame around plot
-  theme_bw() +
-  
-    ## add color gradient
-  scale_colour_gradient(low=&quot;blue2&quot;, high=&quot;red&quot;) +
-  
-  labs (
-    title = &quot;Average Yearly Temperature Anomaly Signifies Steep Temperature Increase in Past 50 Years&quot;,
-    subtitle = &quot;Yearly temperature anomaly has accelerated significantly in more recent years, raising concern among climate scientists&quot;,
-    y = &quot;Average Annual Delta&quot;,
-    x = &quot;Year&quot;,
-    caption = &quot;Source: NASA&#39;s Goddard Institute for Space Studies&quot;)  +
-  
-  theme(legend.position = &quot;none&quot;, plot.title = element_text(face = &quot;bold&quot;), axis.text=element_text(size=12),
-        axis.title=element_text(size=14,face=&quot;bold&quot;))
-## make more clear </code></pre>
-<div id="confidence-interval-for-delta" class="section level2">
-<h2>Confidence Interval for <code>delta</code></h2>
-<p><a href="https://earthobservatory.nasa.gov/world-of-change/decadaltemp.php">NASA points out on their website</a> that</p>
-<blockquote>
-<p>A one-degree global change is significant because it takes a vast amount of heat to warm all the oceans, atmosphere, and land by that much. In the past, a one- to two-degree drop was all it took to plunge the Earth into the Little Ice Age.</p>
-</blockquote>
-<p>We’ve constructed a confidence interval for the average annual delta since 2011, both using a formula and using a bootstrap simulation with the <code>infer</code> package:</p>
-<pre class="r"><code>library (kableExtra)
-formula_ci &lt;- comparison %&gt;% 
-  
-  filter(interval == &quot;2011-present&quot;) %&gt;% 
-  
-  summarise(average_annual_delta = mean(delta, na.rm = TRUE), 
-            annual_delta_sd = sd(delta, na.rm=TRUE), 
-            annual_count = n(), 
-            t_crit = qt(0.975, annual_count-1), 
-            se = annual_delta_sd/sqrt(annual_count), 
-            margin_of_error = t_crit*se, 
-            lower_95 = average_annual_delta - margin_of_error, 
-            upper_95 = average_annual_delta + margin_of_error,
-            time_period = &quot;2011 - present&quot;)
-## nicer table                                                                                                  
+  # using a red color palette for the scatter points
+  scale_fill_brewer(type=&#39;seq&#39;, palette=&#39;Reds&#39;)+
 
-formula_ci %&gt;% kbl() %&gt;% kable_styling()</code></pre>
-<table class="table" style="margin-left: auto; margin-right: auto;">
-<thead>
-<tr>
-<th style="text-align:right;">
-average_annual_delta
-</th>
-<th style="text-align:right;">
-annual_delta_sd
-</th>
-<th style="text-align:right;">
-annual_count
-</th>
-<th style="text-align:right;">
-t_crit
-</th>
-<th style="text-align:right;">
-se
-</th>
-<th style="text-align:right;">
-margin_of_error
-</th>
-<th style="text-align:right;">
-lower_95
-</th>
-<th style="text-align:right;">
-upper_95
-</th>
-<th style="text-align:left;">
-time_period
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:right;">
-0.966
-</td>
-<td style="text-align:right;">
-0.262
-</td>
-<td style="text-align:right;">
-108
-</td>
-<td style="text-align:right;">
-1.98
-</td>
-<td style="text-align:right;">
-0.025
-</td>
-<td style="text-align:right;">
-0.05
-</td>
-<td style="text-align:right;">
-0.916
-</td>
-<td style="text-align:right;">
-1.02
-</td>
-<td style="text-align:left;">
-2011 - present
-</td>
-</tr>
-</tbody>
-</table>
-<pre class="r"><code># use the infer package to construct a 95% CI for delta
-library(infer)
-
-set.seed(1234)
-
-
-# bootstrap for MEAN anomaly
-boot_anomaly &lt;- comparison %&gt;% 
-
-  # choose the interval 2011-present
+  # to prevent overlap of labels on the graph
+  geom_text_repel(aes(label = ST), size = 3, min.segment.length = 1) +
   
-   filter(interval == &quot;2011-present&quot;) %&gt;% 
+  # used for scaling points and renaming for legend
+  scale_size_area(breaks = c(500000, 1500000, 3000000, 7000000), labels = c(&quot;500k&quot;, &quot;1.5m&quot;, &quot;3m&quot;, &quot;7m&quot;), max_size = 20) +    
   
-  # Specify the variable of interest
-  specify(response = delta) %&gt;%
-  
-  # Generate a bunch of bootstrap samples
-  generate(reps = 1000, type = &quot;bootstrap&quot;) %&gt;%
-  
-  # Find the mean of each sample
-  calculate(stat = &quot;mean&quot;)
+  # renaming legend titles and ordering
+  guides(fill = guide_legend(title = &quot;Gun ownership&quot;, order=1),size = guide_legend(title = &quot;White population&quot;, order=2)) +    
+ 
+  scale_x_continuous()+
+  scale_y_continuous()+
 
-percentile_ci &lt;- boot_anomaly %&gt;%
-  get_ci(level =.95, type = &quot;percentile&quot;) 
-  
-percentile_ci %&gt;% kbl() %&gt;% kable_styling()</code></pre>
-<table class="table" style="margin-left: auto; margin-right: auto;">
-<thead>
-<tr>
-<th style="text-align:right;">
-lower_ci
-</th>
-<th style="text-align:right;">
-upper_ci
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:right;">
-0.917
-</td>
-<td style="text-align:right;">
-1.02
-</td>
-</tr>
-</tbody>
-</table>
-<pre class="r"><code>## visualise 95% CI
+  # calculating Spearman&#39;s correlation
+  stat_cor(method = &quot;spearman&quot;, aes(label = ..r.label..))+
+  NULL
 
-ggplot(formula_ci, aes(y = average_annual_delta, x = time_period, colour = average_annual_delta)) + 
-  geom_point(size = 10, colour = &quot;red&quot;) +
-  theme_bw() +
- geom_errorbar(width = .1, aes(ymin=lower_95, ymax=upper_95, colour = &quot;red&quot;), lwd = 2) +
-  labs(x = &quot; &quot;,  
-       y = &quot;Mean Annual Anomaly&quot;, 
-       title = &quot;Mean Anomaly from 2011 - Present&quot;,
-       subtitle = &quot;95% confidence interval for average temperature anomaly in past decade&quot;,
-       caption = &quot;Source: NASA&#39;s Goddard Institute for Space Studies&quot;) +
-  theme_minimal() +
-  ##coord_flip() + 
-  theme(legend.position = &quot;none&quot;, plot.title = element_text(face = &quot;bold&quot;), axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank(),
-        axis.text=element_text(size=12),
-        axis.title=element_text(size=14,face=&quot;bold&quot;))+
-  NULL</code></pre>
-<p><img src="/blogs/blog8_files/figure-html/calculate_CI_using_bootstrap-1.png" width="648" style="display: block; margin: auto;" /></p>
-<p>The above data visualization focuses specifically on temperature anomalies, which is the difference from the average temperature. A positive anomaly indicates a warmer than expected value, while a negative anomaly indicates a cooler value. The scatterplots show temperature anomalies over time, and all show that the temperature anomalies have been increasing steadily over the past century. Further, we can see in the Average Yearly Temp Anomaly graph that the anomalies are increasing at an increasing rate. Our confidence interval for the 2011-present period confirms our previous thoughts, since there is a 95% change that the true average annual anomaly falls between .917 and 1.02, which is a positive anomaly.</p>
-</div>
+replica</code></pre>
+<p><img src="/blogs/blog8_files/figure-html/unnamed-chunk-1-1.png" width="768" style="display: block; margin: auto;" /></p>
 </div>

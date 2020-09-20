@@ -82,7 +82,7 @@ disqusShortname = ""
     # To change the background image on the homepage banner, replace 'banner.jpg' in
     # the 'static/img' folder.
     title = "Stelios Tzavellos"
-    subtitle = "Welcome to my personal site! I am an Analytics and Management student at LBS and in this site you can find more about my experience with R."
+    subtitle = "Welcome to my personal site! I am an Analytics and Management student at LBS and in this site you can find more about my experience in analysing datasets with R."
     buttonText = "About me"
 
 
@@ -98,10 +98,10 @@ disqusShortname = ""
       url = "post/post_1"
     
     [[params.tiles.showcase]]
-      title = "NYT Masks"
-      subtitle = "How does mask use acceptance vary in the US?"
-      image = "pic11.jpg"
-      url = "blogs/blog5.html"
+      title = "Airbnb Analytics"
+      subtitle = "Predicting the price of Airbnbs in Singapore"
+      image = "airbnb.jpg"
+      url = "blogs/blog5"
 
     [[params.tiles.showcase]]
       title = "NYSE stock analysis"
@@ -110,14 +110,14 @@ disqusShortname = ""
       url = "blogs/blog6"
 
     [[params.tiles.showcase]]
-      title = "Airbnb Analytics"
-      subtitle = "Predicting the price of Airbnbs in Singapore"
-      image = "airbnb.jpg"
+      title = "Climate change"
+      subtitle = "Analysing temperature anomalies"
+      image = "climate.jpg"
       url = "blogs/blog7"
 
     [[params.tiles.showcase]]
-      title = "Climate change"
-      subtitle = "Analysing temperature anomalies"
+      title = "Firearm homicide and suicide in the US"
+      subtitle = "Analysing the relationship between firearm possession and causes of death across the 50 US states"
       image = "climate.jpg"
       url = "blogs/blog8"
 
