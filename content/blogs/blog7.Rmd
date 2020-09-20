@@ -7,7 +7,7 @@ description: Climate change
 draft: false
 image: pic14.jpg
 keywords: ""
-slug: blog8
+slug: blog7
 title: Climate change and temperature anomalies 
 ---
 
@@ -43,13 +43,10 @@ library(vroom)
 library(kableExtra)
 ```
 
-
-
-
-# Introduction 
-
+## Introduction 
 The earth's climate has changed throughout history. Most of the observed climate changes can be attributed to small variations in the Earth's orbit, affecting the amount of solar energy received. Nevertheless, the current warming trend is extremely likely (greater than 95 percent probability) to be the result of human activity since the mid-20th century and proceeding at a rate that is unprecedented over decades to millennia. To study climate change, we have used data on the *Combined Land-Surface Air and Sea-Surface Water Temperature Anomalies* in the Northern Hemisphere from [NASA's Goddard Institute for Space Studies](https://data.giss.nasa.gov/gistemp).
 
+## Data analysis
 The base period to calculate changes is taken as 1951-1980.While loading the data, `skip` and `na` are used to remove the first row and missing values respectively:
 
 ```{r weather_data, cache=TRUE}

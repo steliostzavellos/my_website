@@ -1,14 +1,14 @@
 ---
+title: "Firearm homicide and suicide in the US"
+date: '2020-09-18'
+description: Analysing the relationship between firearm possession and causes of death
+  across the 50 US states
+draft: no
+keywords: ''
+slug: blog8
 categories:
-- ""
-- ""
-date: "2020-09-18"
-description: Analysing the relationship between firearm possession and causes of death across the 50 US States
-draft: false
-image: pic13.jpg
-keywords: ""
-slug: blog8 
-title: Firearm homicide and suicide in the US
+- ''
+- ''
 ---
 
  
@@ -44,7 +44,7 @@ library(ggrepel)
 library(kableExtra)
 ```
 
-# Introduction
+## Data explanation
 The aim of the specific document is to analyse a dataset obtained from CDC, which spans over the 50 states in US, for the years 2008-2016, and contains firearm possession information and causes of death(suicide/homicide) of non-hispanic black and white males. By analysing the dataset we created a graph that describes the relationship between firearm homicide and suicide among white men along with reported gun ownership. The plot is referring to the journal article "Riddell_Annals_Hom-Sui-Disparities.pdf".
 
 ```{r fig.width=8}

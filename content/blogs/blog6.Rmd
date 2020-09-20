@@ -44,11 +44,11 @@ library(ggrepel)
 library(kableExtra)
 ```
 
-# Introduction
+## Introduction
 
 The aim of the specific document is to analyse New York Stock Exchange data using R, and more specifically using the tidyverse and ggplot2 packages. We make use of the `tidyquant` package to download historical data of stock prices, calculate returns, and examine the distribution of returns. We have specifically chosen to analyse data from January 2011 up until August 2020. By analysing the dataset, we come up with a measure of the riskiness of 7 company stocks and the S&P500 index. 
 
-# Returns of Financial Stocks
+## Returns of Financial Stocks
 
 To begin with, we create a dataset containing 508 stocks listed on the NYSE. The dataset has a number of different variables as follows:
 

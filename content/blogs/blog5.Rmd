@@ -7,7 +7,7 @@ description: Airbnb price analysis
 draft: false
 image: pic12.jpg
 keywords: ""
-slug: blog7
+slug: blog5
 title: Predictive models of the price of Airbnbs in Singapore 
 ---
 
@@ -51,8 +51,6 @@ library(car)
 library(carData)
 library(ggfortify)
 ```
-
-![""](https://raw.githubusercontent.com/Gritzbach/my_website/master/Singapore.webp)
 
 # Introduction
 Airbnb is a vacation rental online marketplace based in San Francisco, California. Founded in 2008, the company has skyrocketed in popularity, with a private valuation of $18 billion and a plan to potentially go public within the year. 

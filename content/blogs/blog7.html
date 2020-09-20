@@ -7,7 +7,7 @@ description: Climate change
 draft: false
 image: pic14.jpg
 keywords: ""
-slug: blog8
+slug: blog7
 title: Climate change and temperature anomalies 
 ---
 
@@ -16,9 +16,12 @@ title: Climate change and temperature anomalies
 <link href="/rmarkdown-libs/lightable/lightable.css" rel="stylesheet" />
 
 
-<div id="introduction" class="section level1">
-<h1>Introduction</h1>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
 <p>The earth’s climate has changed throughout history. Most of the observed climate changes can be attributed to small variations in the Earth’s orbit, affecting the amount of solar energy received. Nevertheless, the current warming trend is extremely likely (greater than 95 percent probability) to be the result of human activity since the mid-20th century and proceeding at a rate that is unprecedented over decades to millennia. To study climate change, we have used data on the <em>Combined Land-Surface Air and Sea-Surface Water Temperature Anomalies</em> in the Northern Hemisphere from <a href="https://data.giss.nasa.gov/gistemp">NASA’s Goddard Institute for Space Studies</a>.</p>
+</div>
+<div id="data-analysis" class="section level2">
+<h2>Data analysis</h2>
 <p>The base period to calculate changes is taken as 1951-1980.While loading the data, <code>skip</code> and <code>na</code> are used to remove the first row and missing values respectively:</p>
 <pre class="r"><code>weather &lt;- 
   read_csv(&quot;https://data.giss.nasa.gov/gistemp/tabledata_v3/NH.Ts+dSST.csv&quot;, 
@@ -73,7 +76,7 @@ ggplot(tidyweather, aes(x=date, y = delta, colour = date)) +
   subtitle = &quot;Combined land-surface air and sea-surface water temperature anomalies in the northern \nhemisphere have shifted from negative to positive in the last 100 years&quot;, x = &quot;Year&quot;, y = &quot;Delta&quot;, caption = &quot;Source: NASA&#39;s Goddard Institute for Space Studies&quot;) +
   theme(legend.position = &quot;none&quot;, plot.title = element_text(face = &quot;bold&quot;), axis.text=element_text(size=12),
         axis.title=element_text(size=14,face=&quot;bold&quot;))</code></pre>
-<p><img src="/blogs/blog8_files/figure-html/scatter_plot-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p><img src="/blogs/blog7_files/figure-html/scatter_plot-1.png" width="648" style="display: block; margin: auto;" /></p>
 <p>On analysing the temperature difference through different months, we find that the effects of increasing temperature appear to be homogeneous throughout different months.</p>
 <pre class="r"><code>## add to the title/sub , can i thin the smoothing line? , make the theme prettier (no grey months)
 ggplot(tidyweather, aes(x=date, y = delta, colour = date))+
@@ -87,7 +90,7 @@ ggplot(tidyweather, aes(x=date, y = delta, colour = date))+
   facet_wrap(~month) + 
   theme(legend.position = &quot;none&quot;, plot.title = element_text(face = &quot;bold&quot;), axis.text=element_text(size=12),
         axis.title=element_text(size=14,face=&quot;bold&quot;))</code></pre>
-<p><img src="/blogs/blog8_files/figure-html/facet_wrap-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p><img src="/blogs/blog7_files/figure-html/facet_wrap-1.png" width="648" style="display: block; margin: auto;" /></p>
 <p>Here, the years are divided into intervals to help study the data better:</p>
 <pre class="r"><code>comparison &lt;- tidyweather %&gt;% 
   filter(year&gt;= 1881) %&gt;%     #remove years prior to 1881
@@ -150,6 +153,7 @@ ggplot(average_annual_anomaly, aes(x=year, y= annual_average_anomaly, colour = y
   theme(legend.position = &quot;none&quot;, plot.title = element_text(face = &quot;bold&quot;), axis.text=element_text(size=12),
         axis.title=element_text(size=14,face=&quot;bold&quot;))
 ## make more clear </code></pre>
+</div>
 <div id="confidence-interval-for-delta" class="section level2">
 <h2>Confidence Interval for <code>delta</code></h2>
 <p><a href="https://earthobservatory.nasa.gov/world-of-change/decadaltemp.php">NASA points out on their website</a> that</p>
@@ -305,7 +309,6 @@ ggplot(formula_ci, aes(y = average_annual_delta, x = time_period, colour = avera
         axis.text=element_text(size=12),
         axis.title=element_text(size=14,face=&quot;bold&quot;))+
   NULL</code></pre>
-<p><img src="/blogs/blog8_files/figure-html/calculate_CI_using_bootstrap-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p><img src="/blogs/blog7_files/figure-html/calculate_CI_using_bootstrap-1.png" width="648" style="display: block; margin: auto;" /></p>
 <p>The above data visualization focuses specifically on temperature anomalies, which is the difference from the average temperature. A positive anomaly indicates a warmer than expected value, while a negative anomaly indicates a cooler value. The scatterplots show temperature anomalies over time, and all show that the temperature anomalies have been increasing steadily over the past century. Further, we can see in the Average Yearly Temp Anomaly graph that the anomalies are increasing at an increasing rate. Our confidence interval for the 2011-present period confirms our previous thoughts, since there is a 95% change that the true average annual anomaly falls between .917 and 1.02, which is a positive anomaly.</p>
-</div>
 </div>

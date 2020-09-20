@@ -7,7 +7,7 @@ description: Airbnb price analysis
 draft: false
 image: pic12.jpg
 keywords: ""
-slug: blog7
+slug: blog5
 title: Predictive models of the price of Airbnbs in Singapore 
 ---
 
@@ -25,10 +25,6 @@ title: Predictive models of the price of Airbnbs in Singapore
 <script src="/rmarkdown-libs/leaflet-providers-plugin/leaflet-providers-plugin.js"></script>
 
 
-<div class="figure">
-<img src="https://raw.githubusercontent.com/Gritzbach/my_website/master/Singapore.webp" alt="" />
-<p class="caption">""</p>
-</div>
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
 <p>Airbnb is a vacation rental online marketplace based in San Francisco, California. Founded in 2008, the company has skyrocketed in popularity, with a private valuation of $18 billion and a plan to potentially go public within the year.
@@ -491,7 +487,7 @@ skimr::skim(singapore_listings)</code></pre>
   theme(panel.border = element_rect(colour = &quot;#00A699&quot;, fill=NA, size=1))
 
 log_price_hist</code></pre>
-<p><img src="/blogs/blog7_files/figure-html/unnamed-chunk-4-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p><img src="/blogs/blog5_files/figure-html/unnamed-chunk-4-1.png" width="648" style="display: block; margin: auto;" /></p>
 <p>A large majority of accomodations are concentrated below $250 USD.</p>
 </div>
 <div id="visualise-extreme-data" class="section level3">
@@ -546,7 +542,7 @@ combined_box_plots &lt;-
   NULL</code></pre>
 <pre><code>## NULL</code></pre>
 <pre class="r"><code>annotate_figure(combined_box_plots, top = text_grob(&quot;Extreme Values by Variable&quot;, face = &quot;bold&quot;))</code></pre>
-<p><img src="/blogs/blog7_files/figure-html/unnamed-chunk-5-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p><img src="/blogs/blog5_files/figure-html/unnamed-chunk-5-1.png" width="648" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 <div id="data-filtering" class="section level2">
@@ -622,7 +618,7 @@ glimpse(correlation_matrix)</code></pre>
 ggcorr(correlation_matrix)+
   theme_bw() +
   NULL</code></pre>
-<p><img src="/blogs/blog7_files/figure-html/unnamed-chunk-7-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="/blogs/blog5_files/figure-html/unnamed-chunk-7-1.png" width="768" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>#show the correlations more clearly
 ggpairs(correlation_matrix, columns=1:11,
     upper=list(continuous=&#39;cor&#39;),
@@ -631,7 +627,7 @@ ggpairs(correlation_matrix, columns=1:11,
     axisLabels=&#39;show&#39;) +
     theme_bw()+
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) </code></pre>
-<p><img src="/blogs/blog7_files/figure-html/unnamed-chunk-7-2.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="/blogs/blog5_files/figure-html/unnamed-chunk-7-2.png" width="768" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 <div id="mapping" class="section level1">
@@ -712,21 +708,21 @@ The accommodation locations that people give review score has strong relationshi
 <li>price VS cleaning fees</li>
 </ul>
 <p>We started by plotting number of reviews versus price. It can be seen that having many reviews does not affect positively the price as one would expect. Ofcourse, other factors, such as the quality of reviews (e.g. negative or positive) and the overall competition of AirBns in Singapore cannot be determined, hence lowering the significance of the above relationship.</p>
-<p><img src="/blogs/blog7_files/figure-html/price/review%20scatterplot-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p><img src="/blogs/blog5_files/figure-html/price/review%20scatterplot-1.png" width="648" style="display: block; margin: auto;" /></p>
 <p>The next plot shows the price versus review scores. An interesting insight on the graph is that only after a review score of 95% does the price seem to have a positive tendency. This could potentially signify high competition of really good AirBnbs giving a pricing advantage only to hosts with extremely good reviews.</p>
-<p><img src="/blogs/blog7_files/figure-html/price/review%20score%20scatterplot-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p><img src="/blogs/blog5_files/figure-html/price/review%20score%20scatterplot-1.png" width="648" style="display: block; margin: auto;" /></p>
 <p>The next scatterplot shows the price versus the property type. We have simplified this data into the following variables: house, condominium, apartment, serviced apartment, hostel, and other. A general conclusion is difficult to be made, as most types of accommodations seem to hover around a similar range of prices. Nevertheless, serviced apartment prices start at a higher price level, which could signify an incentive for hosts to improve the quality of hospitality. Moreover, the price range of hostels as expected is lower than the rest, and finally, as expected, the range of prices for apartments and condominiums is quite high.</p>
-<p><img src="/blogs/blog7_files/figure-html/price/prop%20type%20scatterplot-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p><img src="/blogs/blog5_files/figure-html/price/prop%20type%20scatterplot-1.png" width="648" style="display: block; margin: auto;" /></p>
 <p>Next, we show the price versus the room type, and as expected entire homes and private rooms can reach a higher price. Nevertheless, what’s interesting is that a large part of the dataset is located on the lower end, hence having similar prices for shared, as well as private rooms.</p>
-<p><img src="/blogs/blog7_files/figure-html/price/room%20type%20scatterplot-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p><img src="/blogs/blog5_files/figure-html/price/room%20type%20scatterplot-1.png" width="648" style="display: block; margin: auto;" /></p>
 <p>The next scatterplot shows the price versus the region that the property is in. The regions are groups of neighborhoods, and we are using this since the data provide a large amount of distinct neighborhoods. Here we can see how prices vary by region, and as discussed in section 3, the central region has a higher price range than the rest of the regions.</p>
-<p><img src="/blogs/blog7_files/figure-html/price/region%20scatterplot-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p><img src="/blogs/blog5_files/figure-html/price/region%20scatterplot-1.png" width="648" style="display: block; margin: auto;" /></p>
 <p>The following scatterplot shows the price versus the number of bedrooms. As the number of bedrooms increases, we can see that the price also increases slightly (excluding the brief dropoff near 7.5 bedrooms). This is unsurprising as larger properties tend to be more expensive. Moreover, the observed dropoff comes as a result of one datapoint and can be thus deemed not significant.</p>
-<p><img src="/blogs/blog7_files/figure-html/price/bedrooms%20scatterplot-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p><img src="/blogs/blog5_files/figure-html/price/bedrooms%20scatterplot-1.png" width="648" style="display: block; margin: auto;" /></p>
 <p>The next scatterplot shows the price versus the number of people the property accommodates. We would expect this plot to show a strong response from price, because usually if a property accommodates more people, it would be more expensive. The lack of a strong response could indicate that there is a large amount of smaller, luxury properties that are expensive, despite not accommodating many people. Additionally, it is possible that cheaper properties that can accommodate many people may be hostels.</p>
-<p><img src="/blogs/blog7_files/figure-html/price/accommodate%20scatterplot-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p><img src="/blogs/blog5_files/figure-html/price/accommodate%20scatterplot-1.png" width="648" style="display: block; margin: auto;" /></p>
 <p>Finally, the last scatterplot graphically represents the relationship between Price and cleaning fee, which seem to have a positive relationship. The higher the prices the higher the cleaning fees. The data points along the horizontal axis are from hosts that do not charge for cleaning fee, however we cannot know whether they incorporate it inflating their overall price.</p>
-<p><img src="/blogs/blog7_files/figure-html/unnamed-chunk-9-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p><img src="/blogs/blog5_files/figure-html/unnamed-chunk-9-1.png" width="648" style="display: block; margin: auto;" /></p>
 </div>
 <div id="further-data-exploration" class="section level2">
 <h2>Further Data Exploration</h2>
@@ -764,7 +760,7 @@ ggplot(property_percent,
   xlab(&quot;&quot;) + 
   ylab(&quot;Listings (%)&quot;)+
   theme_bw()</code></pre>
-<p><img src="/blogs/blog7_files/figure-html/unnamed-chunk-10-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="/blogs/blog5_files/figure-html/unnamed-chunk-10-1.png" width="768" style="display: block; margin: auto;" /></p>
 <pre class="r"><code># find median and mean for prop type by region
 summary_price_stats &lt;- filtered_listings %&gt;%
   group_by(prop_type_simplified, neighbourhood_group_cleansed) %&gt;%
@@ -789,7 +785,7 @@ median_price_by_hood &lt;- ggplot(summary_price_stats,
   NULL
 
 median_price_by_hood</code></pre>
-<p><img src="/blogs/blog7_files/figure-html/unnamed-chunk-10-2.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="/blogs/blog5_files/figure-html/unnamed-chunk-10-2.png" width="768" style="display: block; margin: auto;" /></p>
 </div>
 <div id="superhost-analysis" class="section level2">
 <h2>Superhost Analysis</h2>
@@ -815,7 +811,7 @@ superhost_df %&gt;%
   theme(plot.subtitle = element_text(face = &quot;bold&quot;, color = &quot;grey35&quot;)) +
   theme(plot.caption = element_text(color = &quot;grey68&quot;)) + 
   NULL</code></pre>
-<p><img src="/blogs/blog7_files/figure-html/unnamed-chunk-11-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="/blogs/blog5_files/figure-html/unnamed-chunk-11-1.png" width="768" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>superhost_df %&gt;% 
   ggplot(aes(x = prop_type_simplified, y = price_log, fill = host_is_superhost))+
   geom_boxplot(width=0.5,lwd=1) +
@@ -830,7 +826,7 @@ superhost_df %&gt;%
   theme(plot.subtitle = element_text(face = &quot;bold&quot;, color = &quot;grey35&quot;)) +
   theme(plot.caption = element_text(color = &quot;grey68&quot;)) + 
   NULL</code></pre>
-<p><img src="/blogs/blog7_files/figure-html/unnamed-chunk-11-2.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="/blogs/blog5_files/figure-html/unnamed-chunk-11-2.png" width="768" style="display: block; margin: auto;" /></p>
 </div>
 <div id="demand-analysis-of-airbnb-in-singapore" class="section level2">
 <h2>Demand Analysis of Airbnb in Singapore</h2>
@@ -858,7 +854,7 @@ ggplot(reviewsNum, aes(date, number)) +
   theme(plot.subtitle = element_text(face = &quot;bold&quot;, color = &quot;grey35&quot;)) +
   theme(plot.caption = element_text(color = &quot;grey68&quot;))+
   theme(panel.border = element_rect(colour = &quot;#FF5A5F&quot;, fill=NA, size=1))</code></pre>
-<p><img src="/blogs/blog7_files/figure-html/unnamed-chunk-12-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p><img src="/blogs/blog5_files/figure-html/unnamed-chunk-12-1.png" width="648" style="display: block; margin: auto;" /></p>
 </div>
 <div id="seasonality-of-airbnb-demand-in-singapore" class="section level3">
 <h3>Seasonality of Airbnb Demand in Singapore</h3>
@@ -875,7 +871,7 @@ ggplot(reviewsNum[year(reviewsNum$date) == 2017,], aes(date, number)) +
   theme(plot.subtitle = element_text(face = &quot;bold&quot;, color = &quot;grey35&quot;)) +
   theme(plot.caption = element_text(color = &quot;grey68&quot;))+
   theme(panel.border = element_rect(colour = &quot;#FF5A5F&quot;, fill=NA, size=1))</code></pre>
-<p><img src="/blogs/blog7_files/figure-html/unnamed-chunk-13-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p><img src="/blogs/blog5_files/figure-html/unnamed-chunk-13-1.png" width="648" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>#demand 2018
 ggplot(reviewsNum[year(reviewsNum$date) == 2018,], aes(date, number)) +
   geom_point(na.rm=TRUE, color = &quot;#56B4E9&quot;, alpha=0.5) +
@@ -888,7 +884,7 @@ ggplot(reviewsNum[year(reviewsNum$date) == 2018,], aes(date, number)) +
   theme(plot.subtitle = element_text(face = &quot;bold&quot;, color = &quot;grey35&quot;)) +
   theme(plot.caption = element_text(color = &quot;grey68&quot;))+
   theme(panel.border = element_rect(colour = &quot;#FF5A5F&quot;, fill=NA, size=1))</code></pre>
-<p><img src="/blogs/blog7_files/figure-html/unnamed-chunk-13-2.png" width="648" style="display: block; margin: auto;" /></p>
+<p><img src="/blogs/blog5_files/figure-html/unnamed-chunk-13-2.png" width="648" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>#demand 2019
 demand2019 &lt;- ggplot(reviewsNum[year(reviewsNum$date) == 2019,], aes(date, number)) +
   geom_point(na.rm=TRUE, color = &quot;#56B4E9&quot;, alpha=0.5) +
@@ -903,7 +899,7 @@ demand2019 &lt;- ggplot(reviewsNum[year(reviewsNum$date) == 2019,], aes(date, nu
   theme(panel.border = element_rect(colour = &quot;#FF5A5F&quot;, fill=NA, size=1))
 
 demand2019</code></pre>
-<p><img src="/blogs/blog7_files/figure-html/unnamed-chunk-13-3.png" width="648" style="display: block; margin: auto;" /></p>
+<p><img src="/blogs/blog5_files/figure-html/unnamed-chunk-13-3.png" width="648" style="display: block; margin: auto;" /></p>
 <p>No matter the overall demand trend is roaring(in 2017), staging(in 2018) or fluctuating(in 2019), the charts above show strong seasonality of Airbnb demand in Singapore: bottom in Apr and top in Sep.</p>
 <p>The final part of analysis prior to building up our models, is a heatmap of Average Daily Prices from 2019 to 2020.</p>
 <pre class="r"><code># # Download calendar data about AirBnB bookings in Singapore from March 2019 to July 2020 (including later dates)
@@ -994,7 +990,7 @@ demand2019</code></pre>
               color = &quot;r2g&quot;, # Giving a color selection (Red to Green)
 
               varname=&quot;Average Price Levels for Singapore AirBnBs&quot;) # Naming the variable accordingly to get the right header</code></pre>
-<p><img src="/blogs/blog7_files/figure-html/unnamed-chunk-14-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p><img src="/blogs/blog5_files/figure-html/unnamed-chunk-14-1.png" width="648" style="display: block; margin: auto;" /></p>
 <p>The heatmap above gives us a very good overview on the average prices for AirBnB rentings between June 2019 and May 2020.
 Among the results, we can see interesting trends and manifestations of specific events:</p>
 <ol style="list-style-type: decimal">
@@ -1021,7 +1017,7 @@ regression_analysis &lt;- filtered_listings %&gt;%
 
 #check histogram of new variable to check for normality 
 hist(regression_analysis$log_4_nights)</code></pre>
-<p><img src="/blogs/blog7_files/figure-html/unnamed-chunk-15-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p><img src="/blogs/blog5_files/figure-html/unnamed-chunk-15-1.png" width="648" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>## log of 4 nights give a much more normal data set so we will use this moving forward 
 
 # summary stats on 4 nights by property type 
@@ -1335,7 +1331,7 @@ huxreg(model5, model6, model7, model8, model9)</code></pre>
 
 <pre class="r"><code>#residuals check
 autoplot(model7)</code></pre>
-<p><img src="/blogs/blog7_files/figure-html/unnamed-chunk-17-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p><img src="/blogs/blog5_files/figure-html/unnamed-chunk-17-1.png" width="648" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>##check for collinearity
 car::vif(model7) </code></pre>
 <pre><code>##                      GVIF Df GVIF^(1/(2*Df))

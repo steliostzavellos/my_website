@@ -118,7 +118,7 @@ disqusShortname = ""
     [[params.tiles.showcase]]
       title = "Firearm homicide and suicide in the US"
       subtitle = "Analysing the relationship between firearm possession and causes of death across the 50 US states"
-      image = "climate.jpg"
+      image = "cdc.jpg"
       url = "blogs/blog8"
 
 #    [[params.tiles.showcase]]
